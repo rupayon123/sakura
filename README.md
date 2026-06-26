@@ -17,9 +17,10 @@ Click a bed and the camera flies in to tell its story.
 
 ## Tech
 
-[Vite](https://vite.dev) · [React](https://react.dev) ·
-[React Three Fiber](https://r3f.docs.pmnd.rs) · [drei](https://drei.docs.pmnd.rs) ·
-[postprocessing](https://github.com/pmndrs/react-postprocessing)
+[Vite](https://vite.dev) · [React](https://react.dev) · a [Sketchfab](https://sketchfab.com)
+embed for the 3D sakura tree, with a canvas petal layer and floating UI on top.
+
+Tree model: "Ancient Sakura/Cherry Blossom Tree" by **v_petkov** on Sketchfab.
 
 ## Editing the content
 

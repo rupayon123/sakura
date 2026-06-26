@@ -1,7 +1,8 @@
 import { useRef } from "react";
 import { OrbitControls, Sparkles, ContactShadows } from "@react-three/drei";
 import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
-import Tree from "./Tree";
+import TreeModel from "./TreeModel";
+import BlossomCanopy from "./BlossomCanopy";
 import Petals from "./Petals";
 import Ground from "./Ground";
 import TulipField from "./TulipField";
@@ -64,7 +65,8 @@ export default function Scene({ focused, setFocused, entered, motion, isMobile, 
         autoRotateSpeed={0.5}
       />
 
-      <Tree motion={motion} detail={isMobile ? 0.5 : 1} />
+      <TreeModel motion={motion} scale={3} />
+      <BlossomCanopy motion={motion} center={[0, 6.4, 0]} radii={[3.2, 2.1, 3.2]} count={isMobile ? 1100 : 2600} />
       <Petals count={petalCount} play={motion} />
       <Ground theme={theme} />
       <TulipField count={tulipCount} play={motion} />
