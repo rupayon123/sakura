@@ -1,5 +1,7 @@
 # 桜 Sakura — a garden grown from a promise
 
+### ▶ Live site: **https://rupayon123.github.io/sakura/**
+
 A personal website built around a single memory: my grandmother told me that when
 I get married, I would get a cherry blossom tree. This site _is_ that tree.
 
@@ -18,13 +20,6 @@ Click a bed and the camera flies in to tell its story.
 [Vite](https://vite.dev) · [React](https://react.dev) ·
 [React Three Fiber](https://r3f.docs.pmnd.rs) · [drei](https://drei.docs.pmnd.rs) ·
 [postprocessing](https://github.com/pmndrs/react-postprocessing)
-
-## Run locally
-
-```bash
-npm install
-npm run dev      # http://localhost:5173
-```
 
 ## Editing the content
 
@@ -45,6 +40,12 @@ Everything personal lives in two places:
 ## Deploy
 
 Pushing to `main` builds and publishes automatically via GitHub Actions
-(`.github/workflows/deploy.yml`) to **GitHub Pages**.
+(`.github/workflows/deploy.yml`) to **GitHub Pages** — live at
+**https://rupayon123.github.io/sakura/**.
 
-Live at: **https://rupayon123.github.io/sakura/**
+## Run locally
+
+```bash
+npm install
+npm run dev      # http://localhost:5173
+```
