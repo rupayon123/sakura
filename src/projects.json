@@ -1,0 +1,125 @@
+[
+  {
+    "id": "gta-free-stem-opportunities",
+    "name": "gta-free-stem-opportunities",
+    "description": "Public website for finding free GTA STEM opportunities, volunteer hours, co-op/SHSM pathways, mentorship, and community programs.",
+    "homepage": "https://gta-free-stem.vercel.app",
+    "repo": "https://github.com/rupayon123/gta-free-stem-opportunities",
+    "stars": 0,
+    "topics": [
+      "accessibility",
+      "civic-tech",
+      "education",
+      "gta",
+      "nextjs",
+      "open-data"
+    ],
+    "languages": [
+      "TypeScript",
+      "CSS",
+      "Ruby"
+    ],
+    "pushedAt": "2026-06-26T09:53:34Z"
+  },
+  {
+    "id": "gta-free-stem-ios",
+    "name": "gta-free-stem-ios",
+    "description": "Native SwiftUI app for finding free GTA STEM opportunities with search, MapKit, localization, and TestFlight-ready workflows.",
+    "homepage": "",
+    "repo": "https://github.com/rupayon123/gta-free-stem-ios",
+    "stars": 0,
+    "topics": [
+      "accessibility",
+      "education",
+      "gta",
+      "ios",
+      "mapkit",
+      "stem"
+    ],
+    "languages": [
+      "Swift"
+    ],
+    "pushedAt": "2026-06-12T22:37:42Z"
+  },
+  {
+    "id": "arduino-blocks-lab",
+    "name": "arduino-blocks-lab",
+    "description": "Open-source Arduino block coding lab with Blockly, Arduino C++ generation, and board upload agent.",
+    "homepage": "https://rupayon123.github.io/arduino-blocks-lab/",
+    "repo": "https://github.com/rupayon123/arduino-blocks-lab",
+    "stars": 1,
+    "topics": [
+      "arduino",
+      "arduino-cli",
+      "blockly",
+      "education",
+      "maker",
+      "react"
+    ],
+    "languages": [
+      "TypeScript",
+      "CSS",
+      "JavaScript"
+    ],
+    "pushedAt": "2026-06-20T12:00:27Z"
+  },
+  {
+    "id": "PipHackLup",
+    "name": "PipHackLup",
+    "description": "Hackathon operations Discord bot for onboarding, queues, teams, moderation, and organizer dashboards.",
+    "homepage": "https://piphacklup.vercel.app",
+    "repo": "https://github.com/rupayon123/PipHackLup",
+    "stars": 0,
+    "topics": [
+      "discord-bot",
+      "discord-js",
+      "discord-oauth",
+      "faq-bot",
+      "hackathon",
+      "hackathon-faq"
+    ],
+    "languages": [
+      "TypeScript",
+      "CSS",
+      "JavaScript"
+    ],
+    "pushedAt": "2026-06-22T15:45:15Z"
+  },
+  {
+    "id": "my-app",
+    "name": "my-app",
+    "description": "AuraSpace — B2B salon management: scheduling, CRM, WhatsApp AI, client portal. Next.js + Prisma.",
+    "homepage": "https://app.auraspace.it",
+    "repo": "https://github.com/rupayon123/my-app",
+    "stars": 0,
+    "topics": [],
+    "languages": [
+      "TypeScript",
+      "CSS",
+      "Shell"
+    ],
+    "pushedAt": "2026-06-13T22:42:25Z"
+  },
+  {
+    "id": "all-in-one-resume-builder-job-assist-applier",
+    "name": "all-in-one-resume-builder-job-assist-applier",
+    "description": "Open-source job-search workspace for resumes, ATS checks, job tracking, cover letters, and Chrome job saving.",
+    "homepage": "https://all-in-one-resume-builder-job-assis.vercel.app",
+    "repo": "https://github.com/rupayon123/all-in-one-resume-builder-job-assist-applier",
+    "stars": 0,
+    "topics": [
+      "ats",
+      "career",
+      "chrome-extension",
+      "cover-letter",
+      "job-search",
+      "nextjs"
+    ],
+    "languages": [
+      "TypeScript",
+      "CSS",
+      "PLpgSQL"
+    ],
+    "pushedAt": "2026-06-08T21:03:37Z"
+  }
+]
