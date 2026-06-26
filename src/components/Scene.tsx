@@ -24,8 +24,8 @@ export default function Scene({ focused, setFocused, entered, motion, isMobile, 
   const light = theme === "light";
 
   const bg = light ? "#f3e7ee" : "#07060d";
-  const petalCount = isMobile ? 320 : 900;
-  const tulipCount = isMobile ? 240 : 440;
+  const petalCount = isMobile ? 480 : 1300;
+  const tulipCount = isMobile ? 300 : 540;
 
   return (
     <>
@@ -48,10 +48,11 @@ export default function Scene({ focused, setFocused, entered, motion, isMobile, 
         shadow-camera-bottom={-16}
         shadow-bias={-0.0004}
       />
-      <pointLight position={[0, 5, 0]} intensity={light ? 6 : 18} color="#ff7eb6" distance={22} />
-      <pointLight position={[-8, 2, -6]} intensity={light ? 3 : 10} color="#7ee8fa" distance={24} />
+      <pointLight position={[0, 4.2, 0]} intensity={light ? 8 : 26} color="#ff7eb6" distance={24} />
+      <pointLight position={[-8, 2.5, -6]} intensity={light ? 3 : 12} color="#7ee8fa" distance={26} />
+      <pointLight position={[8, 2.5, 6]} intensity={light ? 2 : 9} color="#b794f6" distance={24} />
 
-      <CameraRig controls={controls} focused={focusedPatch} entered={entered} />
+      <CameraRig controls={controls} focused={focusedPatch} entered={entered} motion={motion} />
       <OrbitControls
         ref={controls}
         enablePan={false}
@@ -60,8 +61,7 @@ export default function Scene({ focused, setFocused, entered, motion, isMobile, 
         maxPolarAngle={Math.PI / 2.05}
         enableDamping
         dampingFactor={0.08}
-        autoRotate={!focused && entered && motion}
-        autoRotateSpeed={0.45}
+        autoRotateSpeed={0.5}
       />
 
       <Tree motion={motion} detail={isMobile ? 0.5 : 1} />
@@ -82,13 +82,13 @@ export default function Scene({ focused, setFocused, entered, motion, isMobile, 
 
       {/* glowing motes drifting around the canopy */}
       <Sparkles
-        count={isMobile ? 30 : 60}
-        scale={[11, 9, 11]}
-        position={[0, 5, 0]}
-        size={3}
+        count={isMobile ? 40 : 90}
+        scale={[10, 8, 10]}
+        position={[0, 4, 0]}
+        size={3.2}
         speed={motion ? 0.35 : 0}
         color={light ? "#ff9ecf" : "#ffd1e6"}
-        opacity={light ? 0.5 : 0.7}
+        opacity={light ? 0.5 : 0.75}
       />
 
       {allPatches.map((p) => (
@@ -103,7 +103,7 @@ export default function Scene({ focused, setFocused, entered, motion, isMobile, 
 
       <EffectComposer>
         <Bloom
-          intensity={light ? 0.4 : 0.9}
+          intensity={light ? 0.45 : 0.95}
           luminanceThreshold={light ? 0.6 : 0.32}
           luminanceSmoothing={0.85}
           mipmapBlur

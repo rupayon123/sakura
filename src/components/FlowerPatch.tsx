@@ -146,10 +146,10 @@ export default function FlowerPatch({
       const x = Math.sin(s * 99.13 + patch.angle) * 43758.5453;
       return x - Math.floor(x);
     };
-    return Array.from({ length: 7 }, (_, i) => ({
-      x: (rng(i) - 0.5) * 1.5,
-      z: (rng(i + 10) - 0.5) * 1.5,
-      h: 0.5 + rng(i + 20) * 0.4,
+    return Array.from({ length: 9 }, (_, i) => ({
+      x: (rng(i) - 0.5) * 1.9,
+      z: (rng(i + 10) - 0.5) * 1.9,
+      h: 0.85 + rng(i + 20) * 0.55, // tall enough to rise above the tulip carpet
       rot: rng(i + 30) * Math.PI * 2,
       phase: rng(i + 40) * Math.PI * 2,
     }));
@@ -169,7 +169,7 @@ export default function FlowerPatch({
     <group position={base}>
       {/* glowing ground disc */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
-        <circleGeometry args={[1.3, 32]} />
+        <circleGeometry args={[1.7, 40]} />
         <meshBasicMaterial
           color={patch.color}
           transparent
@@ -197,11 +197,11 @@ export default function FlowerPatch({
         {flowers.map((f, i) => (
           <group key={i} position={[f.x, 0, f.z]} rotation={[0, f.rot, 0]}>
             {/* stem */}
-            <mesh position={[0, f.h / 2, 0]}>
-              <cylinderGeometry args={[0.015, 0.02, f.h, 5]} />
+            <mesh position={[0, f.h / 2, 0]} castShadow>
+              <cylinderGeometry args={[0.022, 0.03, f.h, 6]} />
               <meshStandardMaterial color="#5a7a52" roughness={0.8} />
             </mesh>
-            <group position={[0, f.h, 0]}>
+            <group position={[0, f.h, 0]} scale={1.55}>
               <FlowerHead kind={patch.flower} color={patch.color} emissive={emissive} />
             </group>
           </group>

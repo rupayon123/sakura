@@ -50,8 +50,8 @@ export default function TulipField({
     return Array.from({ length: count }, () => {
       const a = rng() * Math.PI * 2;
       const r = Math.sqrt(rng() * (outerR * outerR - innerR * innerR) + innerR * innerR);
-      const stemH = 0.26 + rng() * 0.26;
-      const cupS = 0.28 + rng() * 0.2;
+      const stemH = 0.12 + rng() * 0.16;
+      const cupS = 0.18 + rng() * 0.14;
       return {
         x: Math.cos(a) * r,
         z: Math.sin(a) * r,

@@ -21,10 +21,12 @@ interface Segment {
   r2: number;
 }
 
-function buildTree() {
+// canopy ellipsoid (a full, rounded crown the branches reach up into)
+const CANOPY = { cx: 0, cy: 3.8, cz: 0, rx: 3.5, ry: 2.3, rz: 3.5 };
+
+function buildTree(cardCount: number) {
   const rng = mulberry32(20240426);
   const segs: Segment[] = [];
-  const tips: THREE.Vector3[] = [];
 
   function grow(
     origin: THREE.Vector3,
@@ -34,48 +36,57 @@ function buildTree() {
     depth: number
   ) {
     const end = origin.clone().add(dir.clone().multiplyScalar(length));
-    const childRadius = radius * 0.7;
+    const childRadius = radius * 0.72;
     segs.push({ start: origin.clone(), end: end.clone(), r1: radius, r2: childRadius });
-
-    if (depth === 0) {
-      tips.push(end.clone());
-      return;
-    }
-
-    let children = depth >= 4 ? 2 : 2 + (rng() > 0.45 ? 1 : 0);
-    if (depth <= 2 && rng() > 0.7) children += 1; // extra fine twigs near the ends
+    if (depth === 0) return;
+    let children = depth >= 4 ? 2 : 2 + (rng() > 0.4 ? 1 : 0);
+    if (depth <= 2 && rng() > 0.65) children += 1;
     for (let i = 0; i < children; i++) {
       const newDir = dir.clone();
-      const axis = new THREE.Vector3(rng() - 0.5, rng() * 0.25, rng() - 0.5).normalize();
-      const angle = 0.4 + rng() * 0.6;
+      const axis = new THREE.Vector3(rng() - 0.5, rng() * 0.3, rng() - 0.5).normalize();
+      const angle = 0.38 + rng() * 0.55;
       newDir.applyAxisAngle(axis, angle);
-      newDir.y += depth <= 2 ? -0.05 + rng() * 0.1 : 0.05; // slight weeping at the tips
+      newDir.y += depth <= 2 ? -0.03 : 0.08; // reach up, then ends settle inside the crown
       newDir.normalize();
-      grow(end, newDir, length * (0.76 + rng() * 0.08), childRadius, depth - 1);
+      grow(end, newDir, length * (0.76 + rng() * 0.06), childRadius, depth - 1);
     }
   }
+  grow(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 1, 0), 1.75, 0.3, 6);
 
-  grow(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 1, 0), 2.0, 0.3, 6);
+  // fill the canopy ellipsoid with blossom cards (shell-biased so it reads full)
+  const palette = ["#ffd9ea", "#ffc2dd", "#ff9ecf", "#ffffff", "#ffe8f1", "#ff8ec4"];
+  const blossoms = Array.from({ length: cardCount }, () => {
+    const u = rng() * Math.PI * 2;
+    const v = Math.acos(2 * rng() - 1);
+    const rad = Math.pow(rng(), 0.45); // bias outward → dense shell
+    const x = CANOPY.cx + Math.sin(v) * Math.cos(u) * CANOPY.rx * rad;
+    const y = CANOPY.cy + Math.cos(v) * CANOPY.ry * rad;
+    const z = CANOPY.cz + Math.sin(v) * Math.sin(u) * CANOPY.rz * rad;
+    return {
+      pos: new THREE.Vector3(x, y, z),
+      scale: 0.34 + rng() * 0.42,
+      rot: new THREE.Euler(rng() * Math.PI, rng() * Math.PI, rng() * Math.PI),
+      tint: palette[Math.floor(rng() * palette.length)],
+    };
+  });
 
-  // scatter blossom "cards" around every branch tip → a volumetric canopy
-  const blossoms: { pos: THREE.Vector3; scale: number; rot: THREE.Euler; tint: string }[] = [];
-  const palette = ["#ffd9ea", "#ffc2dd", "#ff9ecf", "#ffffff", "#ffe8f1"];
-  for (const tip of tips) {
-    const n = 22 + Math.floor(rng() * 12);
-    for (let i = 0; i < n; i++) {
-      const off = new THREE.Vector3(rng() - 0.5, rng() - 0.4, rng() - 0.5)
-        .normalize()
-        .multiplyScalar(Math.pow(rng(), 0.6) * 0.85);
-      blossoms.push({
-        pos: tip.clone().add(off),
-        scale: 0.28 + rng() * 0.3,
-        rot: new THREE.Euler(rng() * Math.PI, rng() * Math.PI, rng() * Math.PI),
-        tint: palette[Math.floor(rng() * palette.length)],
-      });
-    }
-  }
+  // inner mass blobs so the canopy is opaque, not see-through (kept small + interior)
+  const mass = Array.from({ length: Math.round(cardCount * 0.016) + 12 }, () => {
+    const u = rng() * Math.PI * 2;
+    const v = Math.acos(2 * rng() - 1);
+    const rad = Math.pow(rng(), 0.8) * 0.66;
+    return {
+      pos: new THREE.Vector3(
+        CANOPY.cx + Math.sin(v) * Math.cos(u) * CANOPY.rx * rad,
+        CANOPY.cy + Math.cos(v) * CANOPY.ry * rad,
+        CANOPY.cz + Math.sin(v) * Math.sin(u) * CANOPY.rz * rad
+      ),
+      scale: 0.5 + rng() * 0.6,
+      tint: palette[Math.floor(rng() * palette.length)],
+    };
+  });
 
-  return { segs, blossoms };
+  return { segs, blossoms, mass };
 }
 
 export default function Tree({
@@ -83,38 +94,37 @@ export default function Tree({
   detail = 1,
 }: {
   motion: boolean;
-  detail?: number; // 1 = full, <1 = fewer blossoms (mobile)
+  detail?: number;
 }) {
   const group = useRef<THREE.Group>(null);
   const barkRef = useRef<THREE.InstancedMesh>(null);
   const blossomRef = useRef<THREE.InstancedMesh>(null);
+  const massRef = useRef<THREE.InstancedMesh>(null);
   const blossomMat = useRef<THREE.MeshStandardMaterial>(null);
+  const massMat = useRef<THREE.MeshStandardMaterial>(null);
 
   const tex = useMemo(makeBlossomTexture, []);
-  const { segs, blossoms } = useMemo(buildTree, []);
-  const shown = useMemo(
-    () => (detail >= 1 ? blossoms : blossoms.filter((_, i) => i % Math.round(1 / detail) === 0)),
-    [blossoms, detail]
-  );
+  const cardCount = Math.round((detail >= 1 ? 3200 : 1300));
+  const { segs, blossoms, mass } = useMemo(() => buildTree(cardCount), [cardCount]);
 
   useLayoutEffect(() => {
     const up = new THREE.Vector3(0, 1, 0);
     const m = new THREE.Matrix4();
+    const q = new THREE.Quaternion();
+    const c = new THREE.Color();
 
     segs.forEach((s, i) => {
       const dir = s.end.clone().sub(s.start);
       const len = dir.length();
       const mid = s.start.clone().add(s.end).multiplyScalar(0.5);
-      const quat = new THREE.Quaternion().setFromUnitVectors(up, dir.clone().normalize());
+      q.setFromUnitVectors(up, dir.clone().normalize());
       const avg = (s.r1 + s.r2) * 0.5;
-      m.compose(mid, quat, new THREE.Vector3(avg, len, avg));
+      m.compose(mid, q, new THREE.Vector3(avg, len, avg));
       barkRef.current!.setMatrixAt(i, m);
     });
     barkRef.current!.instanceMatrix.needsUpdate = true;
 
-    const c = new THREE.Color();
-    const q = new THREE.Quaternion();
-    shown.forEach((b, i) => {
+    blossoms.forEach((b, i) => {
       q.setFromEuler(b.rot);
       m.compose(b.pos, q, new THREE.Vector3(b.scale, b.scale, b.scale));
       blossomRef.current!.setMatrixAt(i, m);
@@ -123,32 +133,48 @@ export default function Tree({
     });
     blossomRef.current!.instanceMatrix.needsUpdate = true;
     if (blossomRef.current!.instanceColor) blossomRef.current!.instanceColor.needsUpdate = true;
-  }, [segs, shown]);
+
+    mass.forEach((b, i) => {
+      m.compose(b.pos, new THREE.Quaternion(), new THREE.Vector3(b.scale, b.scale, b.scale));
+      massRef.current!.setMatrixAt(i, m);
+      c.set(b.tint);
+      massRef.current!.setColorAt(i, c);
+    });
+    massRef.current!.instanceMatrix.needsUpdate = true;
+    if (massRef.current!.instanceColor) massRef.current!.instanceColor.needsUpdate = true;
+  }, [segs, blossoms, mass]);
 
   useFrame((state) => {
     if (group.current) {
-      group.current.position.y = motion ? Math.sin(state.clock.elapsedTime * 0.5) * 0.05 : 0;
+      group.current.position.y = motion ? Math.sin(state.clock.elapsedTime * 0.45) * 0.05 : 0;
     }
-    if (blossomMat.current) {
-      blossomMat.current.emissiveIntensity = motion
-        ? 0.7 + Math.sin(state.clock.elapsedTime * 0.9) * 0.25
-        : 0.7;
-    }
+    const pulse = motion ? 0.25 + Math.sin(state.clock.elapsedTime * 0.9) * 0.12 : 0.25;
+    if (blossomMat.current) blossomMat.current.emissiveIntensity = 0.55 + pulse;
+    if (massMat.current) massMat.current.emissiveIntensity = 0.2 + pulse * 0.35;
   });
 
   return (
     <group ref={group}>
-      <instancedMesh
-        ref={barkRef}
-        args={[undefined, undefined, segs.length]}
-        castShadow
-        receiveShadow
-      >
+      <instancedMesh ref={barkRef} args={[undefined, undefined, segs.length]} castShadow receiveShadow>
         <cylinderGeometry args={[0.5, 0.65, 1, 7]} />
         <meshStandardMaterial color="#2c1d2a" roughness={0.92} metalness={0.05} />
       </instancedMesh>
 
-      <instancedMesh ref={blossomRef} args={[undefined, undefined, shown.length]} castShadow>
+      {/* opaque inner mass — gives the crown real volume */}
+      <instancedMesh ref={massRef} args={[undefined, undefined, mass.length]}>
+        <icosahedronGeometry args={[1, 1]} />
+        <meshStandardMaterial
+          ref={massMat}
+          vertexColors
+          roughness={0.85}
+          emissive="#ff5d8f"
+          emissiveIntensity={0.35}
+          toneMapped={false}
+        />
+      </instancedMesh>
+
+      {/* blossom cards — surface detail over the mass */}
+      <instancedMesh ref={blossomRef} args={[undefined, undefined, blossoms.length]} castShadow>
         <planeGeometry args={[1, 1]} />
         <meshStandardMaterial
           ref={blossomMat}
@@ -159,7 +185,7 @@ export default function Tree({
           vertexColors
           side={THREE.DoubleSide}
           transparent
-          alphaTest={0.42}
+          alphaTest={0.4}
           roughness={0.7}
           toneMapped={false}
         />
