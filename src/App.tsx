@@ -3,13 +3,16 @@ import Nav from "./components/Nav";
 import InfoPanel from "./components/InfoPanel";
 import Intro from "./components/Intro";
 import PetalsOverlay from "./components/PetalsOverlay";
+import GardenLayer from "./components/GardenLayer";
 import { allPatches, aboutPatch } from "./content";
 
 // The real "Ancient Sakura / Cherry Blossom Tree" by v_petkov on Sketchfab.
+// UI chrome (title/author bar, controls, help) hidden; watermark kept for attribution.
 const SKETCHFAB =
   "https://sketchfab.com/models/2b75479fe75f4ac7837585e0ef3047a1/embed" +
   "?autospin=0.3&autostart=1&preload=1&transparent=1&ui_theme=dark" +
-  "&ui_infos=0&ui_hint=0&ui_stop=0&ui_watermark_link=0&dnt=1";
+  "&ui_infos=0&ui_controls=0&ui_inspector=0&ui_help=0&ui_settings=0&ui_vr=0" +
+  "&ui_ar=0&ui_annotations=0&ui_fullscreen=0&ui_hint=0&ui_stop=0&dnt=1";
 
 export default function App() {
   const [focused, setFocused] = useState<string | null>(null);
@@ -34,6 +37,7 @@ export default function App() {
         allowFullScreen
       />
 
+      <GardenLayer />
       <PetalsOverlay play={petals} />
 
       <Nav focused={focused} setFocused={setFocused} />
