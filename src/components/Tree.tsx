@@ -13,10 +13,10 @@ function mulberry32(seed: number) {
   };
 }
 
-interface Branch {
-  start: THREE.Vector3;
-  end: THREE.Vector3;
-  radius: number;
+interface Seg {
+  a: THREE.Vector3;
+  b: THREE.Vector3;
+  r: number;
 }
 interface Card {
   pos: THREE.Vector3;
@@ -30,92 +30,121 @@ interface Core {
   tint: string;
 }
 
-const PALETTE = ["#ffbcdb", "#ffa8cf", "#ffd0e4", "#ff9ec9", "#ffe0ee", "#ffb3d6"];
-const CORE_TINT = ["#ff9ec6", "#ffb0d2", "#f78fb8"];
+const PALETTE = ["#ffd2e7", "#ffc0de", "#ffe6f2", "#ffcae1", "#fff2f8", "#ffb9d9"];
+const CORE_TINT = ["#ffb0d2", "#ffc2dd", "#ffa6cc"];
 
-function buildTree(seed: number, cardTotal: number) {
+function buildTree(seed: number, density: number) {
   const rng = mulberry32(seed);
-  const branches: Branch[] = [];
-  const puffs: { pos: THREE.Vector3; radius: number }[] = [];
-
-  // ---- trunk: curving, tapering up to a split ----
-  const splitY = 2.3 + rng() * 0.5;
-  let p = new THREE.Vector3(0, 0, 0);
-  let dir = new THREE.Vector3((rng() - 0.5) * 0.18, 1, (rng() - 0.5) * 0.18).normalize();
-  let r = 0.38;
-  const segs = 5;
-  for (let i = 0; i < segs; i++) {
-    const len = splitY / segs;
-    const end = p.clone().add(dir.clone().multiplyScalar(len));
-    branches.push({ start: p.clone(), end: end.clone(), radius: r });
-    dir = dir
-      .clone()
-      .add(new THREE.Vector3((rng() - 0.5) * 0.22, 0.12, (rng() - 0.5) * 0.22))
-      .normalize();
-    r *= 0.9;
-    p = end;
-  }
-  const top = p.clone();
-
-  // ---- main limbs fanning into a dome, each ending in a blossom puff ----
-  const nMain = 6;
-  for (let i = 0; i < nMain; i++) {
-    const a = (i / nMain) * Math.PI * 2 + rng() * 0.6;
-    const tilt = 0.55 + rng() * 0.5;
-    const outDir = new THREE.Vector3(
-      Math.cos(a) * Math.sin(tilt),
-      Math.cos(tilt) + 0.55,
-      Math.sin(a) * Math.sin(tilt)
-    ).normalize();
-    const len = 1.3 + rng() * 0.9;
-    const bEnd = top.clone().add(outDir.clone().multiplyScalar(len));
-    branches.push({ start: top.clone(), end: bEnd.clone(), radius: r * (0.6 + rng() * 0.2) });
-    puffs.push({ pos: bEnd.clone(), radius: 1.05 + rng() * 0.55 });
-    // a short forking twig for irregularity
-    if (rng() > 0.4) {
-      const t2 = bEnd
-        .clone()
-        .add(new THREE.Vector3((rng() - 0.5) * 0.8, 0.5 + rng() * 0.4, (rng() - 0.5) * 0.8));
-      branches.push({ start: bEnd.clone(), end: t2.clone(), radius: r * 0.35 });
-      puffs.push({ pos: t2.clone(), radius: 0.85 + rng() * 0.4 });
-    }
-  }
-  // crown puff filling the centre top
-  puffs.push({ pos: top.clone().add(new THREE.Vector3(0, 1.5, 0)), radius: 1.45 });
-
-  // ---- blossoms: opaque cores + textured shell cards per puff ----
+  const segs: Seg[] = [];
   const cards: Card[] = [];
   const cores: Core[] = [];
-  const perPuff = Math.max(40, Math.floor(cardTotal / puffs.length));
-  for (const puff of puffs) {
+
+  const addCluster = (pos: THREE.Vector3, size: number, n: number) => {
     cores.push({
-      pos: puff.pos.clone(),
-      radius: puff.radius * 0.8,
+      pos: pos.clone(),
+      radius: size * 0.72,
       tint: CORE_TINT[Math.floor(rng() * CORE_TINT.length)],
     });
-    for (let i = 0; i < perPuff; i++) {
+    for (let i = 0; i < n; i++) {
       const u = rng() * Math.PI * 2;
       const v = Math.acos(2 * rng() - 1);
-      const rad = Math.pow(rng(), 0.4); // shell-biased
-      const pos = puff.pos
-        .clone()
-        .add(
-          new THREE.Vector3(
-            Math.sin(v) * Math.cos(u),
-            Math.cos(v),
-            Math.sin(v) * Math.sin(u)
-          ).multiplyScalar(puff.radius * rad)
-        );
+      const rad = Math.pow(rng(), 0.4) * size;
       cards.push({
-        pos,
-        scale: 0.34 + rng() * 0.4,
+        pos: pos
+          .clone()
+          .add(
+            new THREE.Vector3(
+              Math.sin(v) * Math.cos(u),
+              Math.cos(v),
+              Math.sin(v) * Math.sin(u)
+            ).multiplyScalar(rad)
+          ),
+        scale: 0.3 + rng() * 0.34,
         rot: new THREE.Euler(rng() * Math.PI, rng() * Math.PI, rng() * Math.PI),
         tint: PALETTE[Math.floor(rng() * PALETTE.length)],
       });
     }
+  };
+
+  // a branch that rises then arcs downward (weeping), spawning children + blossoms
+  function grow(
+    start: THREE.Vector3,
+    dir: THREE.Vector3,
+    length: number,
+    radius: number,
+    depth: number
+  ) {
+    const steps = depth >= 2 ? 7 : 6;
+    const droop = depth >= 2 ? 0.1 : depth === 1 ? 0.28 : 0.5;
+    let pos = start.clone();
+    let d = dir.clone().normalize();
+    for (let i = 0; i < steps; i++) {
+      const seg = length / steps;
+      const r = radius * (1 - (i / steps) * 0.3);
+      const next = pos.clone().add(d.clone().multiplyScalar(seg));
+      segs.push({ a: pos.clone(), b: next.clone(), r });
+
+      // bend toward the ground (weeping) + a little noise
+      d.add(new THREE.Vector3(0, -droop, 0));
+      d.add(
+        new THREE.Vector3(rng() - 0.5, (rng() - 0.5) * 0.3, rng() - 0.5).multiplyScalar(0.16)
+      );
+      d.normalize();
+      pos = next;
+
+      // blossom clusters along the fine, drooping branches
+      if (depth <= 1 && i >= 1) {
+        addCluster(pos, 0.55 + rng() * 0.35, Math.round((15 + rng() * 14) * density));
+      }
+      // spawn sub-branches from the middle of a branch
+      if (depth >= 1 && i > 0 && i < steps - 1 && rng() > 0.32) {
+        const cd = d.clone();
+        const axis = new THREE.Vector3(rng() - 0.5, rng(), rng() - 0.5).normalize();
+        cd.applyAxisAngle(axis, 0.5 + rng() * 0.7);
+        cd.y += 0.35; // head up before drooping
+        cd.normalize();
+        grow(pos.clone(), cd, length * (0.58 + rng() * 0.16), radius * 0.52, depth - 1);
+      }
+    }
+    if (depth === 0) addCluster(pos, 0.55, Math.round((18 + rng() * 10) * density));
   }
 
-  return { branches, cards, cores };
+  // ---- bendy S-curved trunk ----
+  let tpos = new THREE.Vector3(0, 0, 0);
+  let td = new THREE.Vector3(0.14, 1, 0.06).normalize();
+  const trad = 0.56;
+  const trunkSteps = 7;
+  const trunkH = 4.0;
+  for (let i = 0; i < trunkSteps; i++) {
+    const seg = trunkH / trunkSteps;
+    const next = tpos.clone().add(td.clone().multiplyScalar(seg));
+    segs.push({ a: tpos.clone(), b: next.clone(), r: trad * (1 - (i / trunkSteps) * 0.5) });
+    td.add(new THREE.Vector3(Math.sin(i * 1.4) * 0.18, 0.04, Math.cos(i * 0.9) * 0.13));
+    td.normalize();
+    tpos = next;
+  }
+  const crown = tpos.clone();
+
+  // ---- main limbs fanning out from the crown ----
+  const nMain = 12;
+  for (let i = 0; i < nMain; i++) {
+    const a = (i / nMain) * Math.PI * 2 + rng() * 0.45;
+    const tilt = 0.7 + rng() * 0.45;
+    const dir = new THREE.Vector3(
+      Math.cos(a) * Math.sin(tilt),
+      Math.cos(tilt) + 0.7,
+      Math.sin(a) * Math.sin(tilt)
+    ).normalize();
+    grow(
+      crown.clone().add(new THREE.Vector3((rng() - 0.5) * 0.4, (rng() - 0.4) * 0.5, (rng() - 0.5) * 0.4)),
+      dir,
+      2.8 + rng() * 1.2,
+      trad * 0.52,
+      2
+    );
+  }
+
+  return { segs, cards, cores };
 }
 
 export default function Tree({
@@ -138,11 +167,8 @@ export default function Tree({
   const cardMat = useRef<THREE.MeshStandardMaterial>(null);
 
   const tex = useMemo(makeBlossomTexture, []);
-  const cardTotal = Math.round((detail >= 1 ? 2400 : 1100));
-  const { branches, cards, cores } = useMemo(
-    () => buildTree(seed, cardTotal),
-    [seed, cardTotal]
-  );
+  const density = detail >= 1 ? 1 : 0.45;
+  const { segs, cards, cores } = useMemo(() => buildTree(seed, density), [seed, density]);
 
   useLayoutEffect(() => {
     const up = new THREE.Vector3(0, 1, 0);
@@ -150,12 +176,12 @@ export default function Tree({
     const q = new THREE.Quaternion();
     const c = new THREE.Color();
 
-    branches.forEach((s, i) => {
-      const d = s.end.clone().sub(s.start);
+    segs.forEach((s, i) => {
+      const d = s.b.clone().sub(s.a);
       const len = d.length();
-      const mid = s.start.clone().add(s.end).multiplyScalar(0.5);
+      const mid = s.a.clone().add(s.b).multiplyScalar(0.5);
       q.setFromUnitVectors(up, d.clone().normalize());
-      m.compose(mid, q, new THREE.Vector3(s.radius, len, s.radius));
+      m.compose(mid, q, new THREE.Vector3(s.r, len, s.r));
       barkRef.current!.setMatrixAt(i, m);
     });
     barkRef.current!.instanceMatrix.needsUpdate = true;
@@ -178,40 +204,33 @@ export default function Tree({
     });
     cardRef.current!.instanceMatrix.needsUpdate = true;
     if (cardRef.current!.instanceColor) cardRef.current!.instanceColor.needsUpdate = true;
-  }, [branches, cards, cores]);
+  }, [segs, cards, cores]);
 
   useFrame((state) => {
     if (group.current) {
       group.current.rotation.z = motion
-        ? Math.sin(state.clock.elapsedTime * 0.5 + seed) * 0.006
+        ? Math.sin(state.clock.elapsedTime * 0.45 + seed) * 0.005
         : 0;
     }
     if (cardMat.current) {
       cardMat.current.emissiveIntensity = motion
-        ? 0.12 + Math.sin(state.clock.elapsedTime * 0.8) * 0.06
+        ? 0.12 + Math.sin(state.clock.elapsedTime * 0.7) * 0.05
         : 0.12;
     }
   });
 
   return (
     <group ref={group} position={position} scale={scale}>
-      <instancedMesh ref={barkRef} args={[undefined, undefined, branches.length]} castShadow receiveShadow>
+      <instancedMesh ref={barkRef} args={[undefined, undefined, segs.length]} castShadow receiveShadow>
         <cylinderGeometry args={[1, 1, 1, 8]} />
-        <meshStandardMaterial color="#6b4a34" roughness={0.92} metalness={0.04} />
+        <meshStandardMaterial color="#6e4a33" roughness={0.95} metalness={0.04} />
       </instancedMesh>
 
-      {/* opaque blossom cores so the canopy is full, not see-through */}
       <instancedMesh ref={coreRef} args={[undefined, undefined, cores.length]} castShadow>
         <icosahedronGeometry args={[1, 2]} />
-        <meshStandardMaterial
-          vertexColors
-          roughness={0.85}
-          emissive="#ff9ec6"
-          emissiveIntensity={0.22}
-        />
+        <meshStandardMaterial vertexColors roughness={0.85} emissive="#ffb6d4" emissiveIntensity={0.26} />
       </instancedMesh>
 
-      {/* textured blossom shell */}
       <instancedMesh ref={cardRef} args={[undefined, undefined, cards.length]} castShadow>
         <planeGeometry args={[1, 1]} />
         <meshStandardMaterial

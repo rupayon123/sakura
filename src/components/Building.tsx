@@ -93,24 +93,43 @@ export default function Building({
         {wood}
       </mesh>
 
-      {/* hip roof — 4-sided pyramid stretched to the footprint, big overhang */}
+      {/* deep eave board the roof sits on (dark underside) */}
+      <mesh position={[0, 0.7 + H + 0.16, 0]} castShadow>
+        <boxGeometry args={[W + 2.6, 0.18, D + 2.6]} />
+        <meshStandardMaterial color="#241f2c" roughness={0.8} />
+      </mesh>
+
+      {/* main hip roof — taller + big overhang for a temple silhouette */}
       <mesh
-        position={[0, 0.7 + H + 0.9, 0]}
+        position={[0, 0.7 + H + 1.25, 0]}
         rotation={[0, Math.PI / 4, 0]}
-        scale={[(W + 2.2) / 1.414, 1.5, (D + 2.2) / 1.414]}
+        scale={[(W + 2.6) / 1.414, 2.2, (D + 2.6) / 1.414]}
         castShadow
       >
         <coneGeometry args={[1, 1, 4]} />
         {tile}
       </mesh>
       {/* ridge cap */}
-      <mesh position={[0, 0.7 + H + 1.5, 0]} castShadow>
-        <boxGeometry args={[W - 1, 0.22, 0.5]} />
+      <mesh position={[0, 0.7 + H + 2.1, 0]} castShadow>
+        <boxGeometry args={[W - 1.5, 0.3, 0.6]} />
         {tile}
       </mesh>
-      {/* under-eave shadow board */}
-      <mesh position={[0, 0.7 + H + 0.18, 0]} castShadow>
-        <boxGeometry args={[W + 2, 0.12, D + 2]} />
+      {/* end ridge ornaments (shibi) */}
+      {[-1, 1].map((s) => (
+        <mesh key={s} position={[s * (W / 2 - 0.7), 0.7 + H + 2.35, 0]} castShadow>
+          <coneGeometry args={[0.22, 0.5, 4]} />
+          {tile}
+        </mesh>
+      ))}
+
+      {/* entry porch roof over the door */}
+      <mesh
+        position={[0, 0.7 + 2.5, D / 2 + 0.5]}
+        rotation={[0, Math.PI / 4, 0]}
+        scale={[3.6 / 1.414, 0.9, 2.4 / 1.414]}
+        castShadow
+      >
+        <coneGeometry args={[1, 1, 4]} />
         {tile}
       </mesh>
     </group>

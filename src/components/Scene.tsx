@@ -33,11 +33,11 @@ export default function Scene({ focused, setFocused, entered, motion, isMobile, 
 
   useEffect(() => {
     gl.toneMapping = THREE.ACESFilmicToneMapping;
-    gl.toneMappingExposure = light ? 1.25 : 1.0;
+    gl.toneMappingExposure = light ? 1.32 : 1.0;
   }, [gl, light]);
 
   const petalCount = isMobile ? 480 : 1300;
-  const tulipCount = isMobile ? 300 : 540;
+  const tulipCount = isMobile ? 150 : 280;
   const fogColor = light ? "#dceaf2" : "#07060d";
 
   return (
@@ -48,7 +48,7 @@ export default function Scene({ focused, setFocused, entered, motion, isMobile, 
       {/* ---- DAY: physical sky + clouds ---- */}
       {light && (
         <>
-          <SkyDome top="#2c7fd0" bottom="#d8ecfb" />
+          <SkyDome top="#2f81cf" bottom="#f0e3ca" />
           <Clouds material={THREE.MeshBasicMaterial} limit={400}>
             <Cloud seed={1} segments={40} bounds={[40, 6, 24]} volume={12} position={[-16, 19, -32]} opacity={0.85} color="#ffffff" speed={motion ? 0.16 : 0} growth={6} />
             <Cloud seed={7} segments={32} bounds={[32, 5, 20]} volume={9} position={[20, 22, -26]} opacity={0.8} color="#f5f8ff" speed={motion ? 0.13 : 0} growth={5} />
@@ -61,12 +61,12 @@ export default function Scene({ focused, setFocused, entered, motion, isMobile, 
       {/* ---- Lighting ---- */}
       {light ? (
         <>
-          <hemisphereLight args={["#cfe7ff", "#6a7a4a", 0.95]} />
-          <ambientLight intensity={0.25} color="#fff3e0" />
+          <hemisphereLight args={["#bfe0ff", "#8a7548", 0.85]} />
+          <ambientLight intensity={0.22} color="#ffeccf" />
           <directionalLight
-            position={[-18, 19, -8]}
-            intensity={2.6}
-            color="#ffe3b3"
+            position={[-22, 13, -7]}
+            intensity={3.0}
+            color="#ffd49a"
             castShadow
             shadow-mapSize={[2048, 2048]}
             shadow-camera-near={1}
@@ -108,16 +108,15 @@ export default function Scene({ focused, setFocused, entered, motion, isMobile, 
         ref={controls}
         enablePan={false}
         minDistance={2.5}
-        maxDistance={40}
+        maxDistance={52}
         maxPolarAngle={Math.PI / 2.08}
         enableDamping
         dampingFactor={0.08}
         autoRotateSpeed={0.5}
       />
 
-      <Tree motion={motion} detail={isMobile ? 0.5 : 1} position={[0, 0, 0]} scale={1.2} seed={20240426} />
-      <Tree motion={motion} detail={isMobile ? 0.3 : 0.6} position={[-9.5, 0, -5]} scale={0.85} seed={7771} />
-      <Tree motion={motion} detail={isMobile ? 0.3 : 0.6} position={[9, 0, -6.5]} scale={0.95} seed={1313} />
+      {/* one huge weeping sakura — the centerpiece */}
+      <Tree motion={motion} detail={isMobile ? 0.45 : 1} position={[0, 0, -1]} scale={1.5} seed={20240426} />
       <Petals count={petalCount} play={motion} />
       <GardenGround theme={theme} petalCount={isMobile ? 400 : 700} />
       <TulipField count={tulipCount} play={motion} />

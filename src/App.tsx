@@ -29,7 +29,7 @@ export default function App() {
       <Canvas
         shadows
         dpr={[1, isMobile ? 1.5 : 2]}
-        camera={{ position: [0, 5.2, 18.5], fov: 45 }}
+        camera={{ position: [0, 6.5, 24], fov: 45 }}
         gl={{ antialias: true }}
       >
         <Suspense fallback={null}>
