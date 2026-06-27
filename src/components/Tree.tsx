@@ -42,13 +42,13 @@ function buildTree(seed: number, density: number) {
   const addCluster = (pos: THREE.Vector3, size: number, n: number) => {
     cores.push({
       pos: pos.clone(),
-      radius: size * 0.72,
+      radius: size * 0.6,
       tint: CORE_TINT[Math.floor(rng() * CORE_TINT.length)],
     });
     for (let i = 0; i < n; i++) {
       const u = rng() * Math.PI * 2;
       const v = Math.acos(2 * rng() - 1);
-      const rad = Math.pow(rng(), 0.4) * size;
+      const rad = Math.pow(rng(), 0.38) * size * 1.05;
       cards.push({
         pos: pos
           .clone()
@@ -59,7 +59,7 @@ function buildTree(seed: number, density: number) {
               Math.sin(v) * Math.sin(u)
             ).multiplyScalar(rad)
           ),
-        scale: 0.3 + rng() * 0.34,
+        scale: 0.34 + rng() * 0.36,
         rot: new THREE.Euler(rng() * Math.PI, rng() * Math.PI, rng() * Math.PI),
         tint: PALETTE[Math.floor(rng() * PALETTE.length)],
       });
@@ -94,7 +94,7 @@ function buildTree(seed: number, density: number) {
 
       // blossom clusters along the fine, drooping branches
       if (depth <= 1 && i >= 1) {
-        addCluster(pos, 0.55 + rng() * 0.35, Math.round((15 + rng() * 14) * density));
+        addCluster(pos, 0.6 + rng() * 0.4, Math.round((26 + rng() * 18) * density));
       }
       // spawn sub-branches from the middle of a branch
       if (depth >= 1 && i > 0 && i < steps - 1 && rng() > 0.32) {
@@ -106,7 +106,7 @@ function buildTree(seed: number, density: number) {
         grow(pos.clone(), cd, length * (0.58 + rng() * 0.16), radius * 0.52, depth - 1);
       }
     }
-    if (depth === 0) addCluster(pos, 0.55, Math.round((18 + rng() * 10) * density));
+    if (depth === 0) addCluster(pos, 0.6, Math.round((30 + rng() * 14) * density));
   }
 
   // ---- bendy S-curved trunk ----
@@ -214,8 +214,8 @@ export default function Tree({
     }
     if (cardMat.current) {
       cardMat.current.emissiveIntensity = motion
-        ? 0.12 + Math.sin(state.clock.elapsedTime * 0.7) * 0.05
-        : 0.12;
+        ? 0.32 + Math.sin(state.clock.elapsedTime * 0.7) * 0.06
+        : 0.32;
     }
   });
 
@@ -228,7 +228,7 @@ export default function Tree({
 
       <instancedMesh ref={coreRef} args={[undefined, undefined, cores.length]} castShadow>
         <icosahedronGeometry args={[1, 2]} />
-        <meshStandardMaterial vertexColors roughness={0.85} emissive="#ffb6d4" emissiveIntensity={0.26} />
+        <meshStandardMaterial vertexColors roughness={0.85} emissive="#ff9ec9" emissiveIntensity={0.42} />
       </instancedMesh>
 
       <instancedMesh ref={cardRef} args={[undefined, undefined, cards.length]} castShadow>

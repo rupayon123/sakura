@@ -48,6 +48,43 @@ export function makePetalTexture(): THREE.Texture {
   return tex;
 }
 
+export function makeFloretTexture(): THREE.Texture {
+  // small WHITE 5-petal flower (alpha) — tinted per-bed via material.color
+  const c = document.createElement("canvas");
+  c.width = c.height = 128;
+  const ctx = c.getContext("2d")!;
+  ctx.translate(64, 64);
+  for (let i = 0; i < 5; i++) {
+    ctx.save();
+    ctx.rotate((i / 5) * Math.PI * 2);
+    const g = ctx.createLinearGradient(0, 0, 0, -56);
+    g.addColorStop(0, "rgba(255,255,255,0.95)");
+    g.addColorStop(1, "rgba(255,255,255,0.45)");
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(-26, -8, -24, -46, 0, -56);
+    ctx.bezierCurveTo(24, -46, 26, -8, 0, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+  // soft bright center
+  const cg = ctx.createRadialGradient(0, 0, 1, 0, 0, 12);
+  cg.addColorStop(0, "rgba(255,250,220,0.95)");
+  cg.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = cg;
+  ctx.beginPath();
+  ctx.arc(0, 0, 12, 0, Math.PI * 2);
+  ctx.fill();
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+  tex.needsUpdate = true;
+  return tex;
+}
+
 export function makeGrassTexture(): THREE.Texture {
   const c = document.createElement("canvas");
   c.width = c.height = 256;

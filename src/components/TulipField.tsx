@@ -34,11 +34,13 @@ export default function TulipField({
   innerR = 2.0,
   outerR = 9.6,
   play = true,
+  theme = "light",
 }: {
   count?: number;
   innerR?: number;
   outerR?: number;
   play?: boolean;
+  theme?: "dark" | "light";
 }) {
   const cups = useRef<THREE.InstancedMesh>(null);
   const stems = useRef<THREE.InstancedMesh>(null);
@@ -50,8 +52,8 @@ export default function TulipField({
     return Array.from({ length: count }, () => {
       const a = rng() * Math.PI * 2;
       const r = Math.sqrt(rng() * (outerR * outerR - innerR * innerR) + innerR * innerR);
-      const stemH = 0.12 + rng() * 0.16;
-      const cupS = 0.18 + rng() * 0.14;
+      const stemH = 0.22 + rng() * 0.22;
+      const cupS = 0.34 + rng() * 0.22;
       return {
         x: Math.cos(a) * r,
         z: Math.sin(a) * r,
@@ -93,9 +95,10 @@ export default function TulipField({
 
   useFrame((state) => {
     if (cupMat.current) {
+      const base = theme === "dark" ? 0.45 : 0.12;
       cupMat.current.emissiveIntensity = play
-        ? 0.4 + Math.sin(state.clock.elapsedTime * 0.6) * 0.1
-        : 0.4;
+        ? base + Math.sin(state.clock.elapsedTime * 0.6) * 0.06
+        : base;
     }
   });
 

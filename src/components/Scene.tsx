@@ -37,7 +37,7 @@ export default function Scene({ focused, setFocused, entered, motion, isMobile, 
   }, [gl, light]);
 
   const petalCount = isMobile ? 480 : 1300;
-  const tulipCount = isMobile ? 150 : 280;
+  const tulipCount = isMobile ? 280 : 480;
   const fogColor = light ? "#dceaf2" : "#07060d";
 
   return (
@@ -119,7 +119,7 @@ export default function Scene({ focused, setFocused, entered, motion, isMobile, 
       <Tree motion={motion} detail={isMobile ? 0.45 : 1} position={[0, 0, -1]} scale={1.5} seed={20240426} />
       <Petals count={petalCount} play={motion} />
       <GardenGround theme={theme} petalCount={isMobile ? 400 : 700} />
-      <TulipField count={tulipCount} play={motion} />
+      <TulipField count={tulipCount} innerR={1.8} outerR={8} play={motion} theme={theme} />
       <Rocks count={isMobile ? 10 : 18} />
       <Bushes theme={theme} count={isMobile ? 4 : 8} />
 

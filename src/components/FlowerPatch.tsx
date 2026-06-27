@@ -1,7 +1,8 @@
-import { useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
-import type { Patch, FlowerKind } from "../content";
+import { makeFloretTexture } from "../textures";
+import type { Patch } from "../content";
 
 // tulip-bud silhouette revolved into a lathe (for the family tulip beds)
 const TULIP_PROFILE = [
@@ -15,114 +16,17 @@ const TULIP_PROFILE = [
   [0.0, 1.0],
 ].map(([x, y]) => new THREE.Vector2(x, y));
 
-const PETAL_GEO = new THREE.SphereGeometry(1, 12, 8);
-const CENTER_GEO = new THREE.SphereGeometry(0.06, 14, 14);
-const LEAF_GEO = new THREE.SphereGeometry(1, 8, 6);
-
-/* ---- a single flower head, shape depends on kind ---- */
-function FlowerHead({
-  kind,
-  color,
-  emissive,
-  neon,
-}: {
-  kind: FlowerKind;
-  color: string;
-  emissive: number;
-  neon: boolean;
-}) {
-  if (kind === "tulip") {
-    return (
-      <mesh scale={0.45} castShadow>
-        <latheGeometry args={[TULIP_PROFILE, 16]} />
-        <meshStandardMaterial
-          color={color}
-          emissive={color}
-          emissiveIntensity={emissive}
-          roughness={0.5}
-          side={THREE.DoubleSide}
-          toneMapped={!neon ? true : false}
-        />
-      </mesh>
-    );
-  }
-
-  if (kind === "lavender") {
-    return (
-      <group>
-        {Array.from({ length: 9 }).map((_, i) => (
-          <mesh
-            key={i}
-            position={[Math.sin(i * 1.3) * 0.025, 0.06 + i * 0.06, Math.cos(i * 1.3) * 0.025]}
-          >
-            <sphereGeometry args={[0.055 - i * 0.004, 8, 8]} />
-            <meshStandardMaterial
-              color={color}
-              emissive={color}
-              emissiveIntensity={emissive}
-              roughness={0.5}
-              toneMapped={!neon ? true : false}
-            />
-          </mesh>
-        ))}
-      </group>
-    );
-  }
-
-  // sakura / daisy / poppy → layered bowl of petals + a domed center
-  const cfg =
-    kind === "daisy"
-      ? { count: 16, len: 0.2, wide: 0.045, tilt: 0.32, layers: 2 }
-      : kind === "poppy"
-      ? { count: 6, len: 0.21, wide: 0.18, tilt: 0.34, layers: 2 }
-      : { count: 5, len: 0.18, wide: 0.14, tilt: 0.46, layers: 1 }; // sakura
-
-  const rr = 0.09;
-  const petals: JSX.Element[] = [];
-  for (let l = 0; l < cfg.layers; l++) {
-    const off = l * (Math.PI / cfg.count);
-    const s = 1 - l * 0.28;
-    for (let i = 0; i < cfg.count; i++) {
-      const a = (i / cfg.count) * Math.PI * 2 + off;
-      petals.push(
-        <group key={`${l}-${i}`} rotation={[0, a, 0]}>
-          <mesh
-            geometry={PETAL_GEO}
-            position={[rr, 0.02 + l * 0.03, 0]}
-            rotation={[0, 0, -cfg.tilt]}
-            scale={[cfg.len * s, 0.035, cfg.wide * s]}
-            castShadow
-          >
-            <meshStandardMaterial
-              color={color}
-              emissive={color}
-              emissiveIntensity={emissive}
-              roughness={0.5}
-              side={THREE.DoubleSide}
-              toneMapped={!neon ? true : false}
-            />
-          </mesh>
-        </group>
-      );
-    }
-  }
-
-  return (
-    <group>
-      {petals}
-      <mesh geometry={CENTER_GEO} position={[0, 0.05, 0]}>
-        <meshStandardMaterial
-          color="#ffe9a8"
-          emissive="#ffcf5d"
-          emissiveIntensity={neon ? emissive * 0.8 : 0.15}
-          toneMapped={!neon ? true : false}
-        />
-      </mesh>
-    </group>
-  );
+function seeded(seed: number) {
+  return function () {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
 }
 
-/* ---- a patch = a flowering clump (foliage + flowers) at one spot ---- */
+/* ---- a patch = a flowering bush (project) or a tulip clump (family) ---- */
 export default function FlowerPatch({
   patch,
   active,
@@ -137,8 +41,16 @@ export default function FlowerPatch({
   onClick: () => void;
 }) {
   const group = useRef<THREE.Group>(null);
+  const floretRef = useRef<THREE.InstancedMesh>(null);
+  const floretMat = useRef<THREE.MeshStandardMaterial>(null);
+  const cupRef = useRef<THREE.InstancedMesh>(null);
+  const cupMat = useRef<THREE.MeshStandardMaterial>(null);
+  const stemRef = useRef<THREE.InstancedMesh>(null);
   const [hovered, setHovered] = useState(false);
+
   const neon = theme === "dark";
+  const isTulip = patch.flower === "tulip";
+  const tex = useMemo(makeFloretTexture, []);
 
   const rad = THREE.MathUtils.degToRad(patch.angle);
   const base: [number, number, number] = [
@@ -147,66 +59,98 @@ export default function FlowerPatch({
     Math.cos(rad) * patch.radius,
   ];
 
-  const flowers = useMemo(() => {
-    const rng = (s: number) => {
-      const x = Math.sin(s * 99.13 + patch.angle) * 43758.5453;
-      return x - Math.floor(x);
-    };
-    return Array.from({ length: 10 }, (_, i) => ({
-      x: (rng(i) - 0.5) * 1.7,
-      z: (rng(i + 10) - 0.5) * 1.7,
-      h: 0.42 + rng(i + 20) * 0.5,
-      rot: rng(i + 30) * Math.PI * 2,
-      lean: (rng(i + 50) - 0.5) * 0.3,
+  // bush mound blobs (green foliage the flowers sit on)
+  const mound = useMemo(() => {
+    const r = seeded(Math.round(patch.angle * 13.7) + 5);
+    return Array.from({ length: 6 }, () => ({
+      x: (r() - 0.5) * 1.5,
+      y: 0.18 + r() * 0.28,
+      z: (r() - 0.5) * 1.5,
+      s: 0.42 + r() * 0.34,
     }));
   }, [patch.angle]);
 
-  const leaves = useMemo(() => {
-    const rng = (s: number) => {
-      const x = Math.sin(s * 71.7 + patch.angle * 3) * 24634.21;
-      return x - Math.floor(x);
-    };
-    return Array.from({ length: 7 }, (_, i) => ({
-      x: (rng(i) - 0.5) * 1.9,
-      z: (rng(i + 5) - 0.5) * 1.9,
-      s: 0.4 + rng(i + 9) * 0.4,
-      rot: rng(i + 12) * Math.PI * 2,
-    }));
-  }, [patch.angle]);
+  // flower placements (florets for a bush, tulips for the family)
+  const N = isTulip ? 26 : 78;
+  const items = useMemo(() => {
+    const r = seeded(Math.round(patch.angle * 91.3) + 11);
+    return Array.from({ length: N }, () => {
+      const ang = r() * Math.PI * 2;
+      const rr = Math.sqrt(r()) * (isTulip ? 0.95 : 1.05);
+      const dome = isTulip ? 0 : Math.cos(rr / 1.2) * 0.55; // mound height
+      return {
+        x: Math.cos(ang) * rr,
+        z: Math.sin(ang) * rr,
+        y: (isTulip ? 0 : 0.32 + dome) + r() * 0.12,
+        rot: new THREE.Euler(r() * Math.PI, r() * Math.PI * 2, r() * Math.PI),
+        yaw: r() * Math.PI * 2,
+        s: isTulip ? 0.34 + r() * 0.16 : 0.2 + r() * 0.16,
+        stemH: 0.3 + r() * 0.3,
+        lean: (r() - 0.5) * 0.3,
+      };
+    });
+  }, [patch.angle, N, isTulip]);
+
+  useLayoutEffect(() => {
+    const m = new THREE.Matrix4();
+    const q = new THREE.Quaternion();
+    const e = new THREE.Euler();
+
+    if (isTulip) {
+      items.forEach((it, i) => {
+        e.set(it.lean, it.yaw, it.lean * 0.5);
+        q.setFromEuler(e);
+        m.compose(new THREE.Vector3(it.x, it.stemH / 2, it.z), q, new THREE.Vector3(0.02, it.stemH, 0.02));
+        stemRef.current!.setMatrixAt(i, m);
+        m.compose(new THREE.Vector3(it.x, it.stemH, it.z), q, new THREE.Vector3(it.s, it.s, it.s));
+        cupRef.current!.setMatrixAt(i, m);
+      });
+      stemRef.current!.instanceMatrix.needsUpdate = true;
+      cupRef.current!.instanceMatrix.needsUpdate = true;
+    } else {
+      items.forEach((it, i) => {
+        q.setFromEuler(it.rot);
+        m.compose(new THREE.Vector3(it.x, it.y, it.z), q, new THREE.Vector3(it.s, it.s, it.s));
+        floretRef.current!.setMatrixAt(i, m);
+      });
+      floretRef.current!.instanceMatrix.needsUpdate = true;
+    }
+  }, [items, isTulip]);
 
   useFrame((state) => {
-    if (!group.current) return;
-    const t = state.clock.elapsedTime;
-    const target = active ? 1.2 : hovered ? 1.1 : 1;
-    group.current.scale.lerp(new THREE.Vector3(target, target, target), 0.1);
-    group.current.position.y = active ? 0.12 + Math.sin(t * 2) * 0.03 : 0;
+    if (group.current) {
+      const target = active ? 1.18 : hovered ? 1.08 : 1;
+      group.current.scale.lerp(new THREE.Vector3(target, target, target), 0.1);
+      group.current.position.y = active ? 0.1 + Math.sin(state.clock.elapsedTime * 2) * 0.03 : 0;
+    }
+    const glow = neon
+      ? dimmed
+        ? 0.25
+        : active || hovered
+        ? 1.5
+        : 0.85
+      : active || hovered
+      ? 0.5
+      : 0.04;
+    if (floretMat.current) floretMat.current.emissiveIntensity = glow;
+    if (cupMat.current) cupMat.current.emissiveIntensity = glow;
   });
 
-  const emissive = neon
-    ? dimmed
-      ? 0.2
-      : active || hovered
-      ? 1.45
-      : 0.95
-    : active || hovered
-    ? 0.4
-    : 0.0;
-
+  const greenLeaf = neon ? "#2f5238" : "#4f7a45";
   const discOpacity = neon
     ? dimmed
-      ? 0.04
+      ? 0.05
       : active || hovered
-      ? 0.22
-      : 0.1
+      ? 0.24
+      : 0.12
     : active || hovered
     ? 0.18
     : 0;
 
   return (
     <group position={base}>
-      {/* highlight disc (subtle by day, glow by night) */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.015, 0]}>
-        <circleGeometry args={[1.6, 40]} />
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.018, 0]}>
+        <circleGeometry args={[1.7, 40]} />
         <meshBasicMaterial color={patch.color} transparent opacity={discOpacity} toneMapped={false} />
       </mesh>
 
@@ -226,38 +170,67 @@ export default function FlowerPatch({
           document.body.style.cursor = "auto";
         }}
       >
-        {/* leafy green foliage clump the flowers grow from */}
-        {leaves.map((lf, i) => (
-          <mesh
-            key={`lf${i}`}
-            geometry={LEAF_GEO}
-            position={[lf.x, 0.12, lf.z]}
-            rotation={[0, lf.rot, 0.3]}
-            scale={[lf.s * 0.5, 0.12, lf.s]}
-            castShadow
-            receiveShadow
-          >
-            <meshStandardMaterial
-              color={neon ? "#2f5238" : "#4d7a45"}
-              emissive={neon ? "#173a22" : "#000000"}
-              emissiveIntensity={neon ? 0.3 : 0}
-              roughness={0.85}
-            />
-          </mesh>
-        ))}
-
-        {flowers.map((f, i) => (
-          <group key={i} position={[f.x, 0, f.z]} rotation={[f.lean, f.rot, f.lean]}>
-            {/* stem */}
-            <mesh position={[0, f.h / 2, 0]} castShadow>
-              <cylinderGeometry args={[0.018, 0.026, f.h, 6]} />
-              <meshStandardMaterial color={neon ? "#3f5a3a" : "#5a7a4a"} roughness={0.8} />
+        {/* green foliage mound (the bush body) */}
+        {!isTulip &&
+          mound.map((b, i) => (
+            <mesh key={i} position={[b.x, b.y, b.z]} scale={[b.s, b.s * 0.8, b.s]} castShadow receiveShadow>
+              <icosahedronGeometry args={[1, 2]} />
+              <meshStandardMaterial color={greenLeaf} roughness={0.9} flatShading />
             </mesh>
-            <group position={[0, f.h, 0]} scale={1.15}>
-              <FlowerHead kind={patch.flower} color={patch.color} emissive={emissive} neon={neon} />
-            </group>
-          </group>
-        ))}
+          ))}
+
+        {/* a few leaves for the tulip clump */}
+        {isTulip &&
+          mound.slice(0, 4).map((b, i) => (
+            <mesh
+              key={i}
+              position={[b.x * 0.5, 0.12, b.z * 0.5]}
+              rotation={[0, i, 0.4]}
+              scale={[0.18, 0.5, 0.5]}
+              castShadow
+            >
+              <icosahedronGeometry args={[1, 1]} />
+              <meshStandardMaterial color={greenLeaf} roughness={0.9} flatShading />
+            </mesh>
+          ))}
+
+        {/* FLOWERS */}
+        {isTulip ? (
+          <>
+            <instancedMesh ref={stemRef} args={[undefined, undefined, N]} castShadow>
+              <cylinderGeometry args={[1, 1, 1, 6]} />
+              <meshStandardMaterial color={greenLeaf} roughness={0.85} />
+            </instancedMesh>
+            <instancedMesh ref={cupRef} args={[undefined, undefined, N]} castShadow>
+              <latheGeometry args={[TULIP_PROFILE, 16]} />
+              <meshStandardMaterial
+                ref={cupMat}
+                color={patch.color}
+                emissive={patch.color}
+                emissiveIntensity={0.04}
+                roughness={0.5}
+                side={THREE.DoubleSide}
+                toneMapped={!neon}
+              />
+            </instancedMesh>
+          </>
+        ) : (
+          <instancedMesh ref={floretRef} args={[undefined, undefined, N]} castShadow>
+            <planeGeometry args={[0.9, 0.9]} />
+            <meshStandardMaterial
+              ref={floretMat}
+              map={tex}
+              color={patch.color}
+              emissive={patch.color}
+              emissiveIntensity={0.04}
+              side={THREE.DoubleSide}
+              transparent
+              alphaTest={0.38}
+              roughness={0.7}
+              toneMapped={!neon}
+            />
+          </instancedMesh>
+        )}
       </group>
     </group>
   );
