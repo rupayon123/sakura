@@ -1,44 +1,48 @@
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { Canvas } from "@react-three/fiber";
+import Scene from "./components/Scene";
 import Nav from "./components/Nav";
 import InfoPanel from "./components/InfoPanel";
 import Intro from "./components/Intro";
-import PetalsOverlay from "./components/PetalsOverlay";
-import GardenLayer from "./components/GardenLayer";
 import { allPatches, aboutPatch } from "./content";
-
-// The real "Ancient Sakura / Cherry Blossom Tree" by v_petkov on Sketchfab.
-// UI chrome (title/author bar, controls, help) hidden; watermark kept for attribution.
-const SKETCHFAB =
-  "https://sketchfab.com/models/2b75479fe75f4ac7837585e0ef3047a1/embed" +
-  "?autospin=0.3&autostart=1&preload=1&transparent=1&ui_theme=dark" +
-  "&ui_infos=0&ui_controls=0&ui_inspector=0&ui_help=0&ui_settings=0&ui_vr=0" +
-  "&ui_ar=0&ui_annotations=0&ui_fullscreen=0&ui_hint=0&ui_stop=0&dnt=1";
 
 export default function App() {
   const [focused, setFocused] = useState<string | null>(null);
   const [entered, setEntered] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
-  const [petals, setPetals] = useState(true);
+  const [motion, setMotion] = useState(true);
+
+  const isMobile = useMemo(
+    () => typeof window !== "undefined" && window.innerWidth < 768,
+    []
+  );
 
   useEffect(() => {
     document.body.dataset.theme = theme;
   }, [theme]);
 
-  const focusedPatch = [...allPatches, aboutPatch].find((p) => p.id === focused) ?? null;
+  const focusedPatch =
+    [...allPatches, aboutPatch].find((p) => p.id === focused) ?? null;
 
   return (
     <div className="stage">
-      <iframe
-        className="sketchfab"
-        title="Ancient Sakura Cherry Blossom Tree"
-        src={SKETCHFAB}
-        frameBorder={0}
-        allow="autoplay; fullscreen; xr-spatial-tracking"
-        allowFullScreen
-      />
-
-      <GardenLayer />
-      <PetalsOverlay play={petals} />
+      <Canvas
+        shadows
+        dpr={[1, isMobile ? 1.5 : 2]}
+        camera={{ position: [0, 7.6, 19.5], fov: 45 }}
+        gl={{ antialias: true }}
+      >
+        <Suspense fallback={null}>
+          <Scene
+            focused={focused}
+            setFocused={setFocused}
+            entered={entered}
+            motion={motion}
+            isMobile={isMobile}
+            theme={theme}
+          />
+        </Suspense>
+      </Canvas>
 
       <Nav focused={focused} setFocused={setFocused} />
       <InfoPanel patch={focusedPatch} onClose={() => setFocused(null)} />
@@ -46,8 +50,8 @@ export default function App() {
 
       {entered && (
         <div className="controls">
-          <button className="ctl" onClick={() => setPetals((p) => !p)} title="Toggle petals">
-            {petals ? "⏸ petals" : "▶ petals"}
+          <button className="ctl" onClick={() => setMotion((m) => !m)} title="Toggle motion">
+            {motion ? "⏸ motion" : "▶ motion"}
           </button>
           <button
             className="ctl"
@@ -60,7 +64,7 @@ export default function App() {
       )}
 
       {entered && !focused && (
-        <div className="hint">drag the tree to look around · click a name above</div>
+        <div className="hint">drag to orbit · scroll to zoom · click a name above</div>
       )}
     </div>
   );
