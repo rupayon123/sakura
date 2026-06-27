@@ -9,7 +9,7 @@ import { allPatches, aboutPatch } from "./content";
 export default function App() {
   const [focused, setFocused] = useState<string | null>(null);
   const [entered, setEntered] = useState(false);
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [theme, setTheme] = useState<"dark" | "light">("light");
   const [motion, setMotion] = useState(true);
 
   const isMobile = useMemo(
@@ -29,7 +29,7 @@ export default function App() {
       <Canvas
         shadows
         dpr={[1, isMobile ? 1.5 : 2]}
-        camera={{ position: [0, 7.6, 19.5], fov: 45 }}
+        camera={{ position: [0, 5.2, 18.5], fov: 45 }}
         gl={{ antialias: true }}
       >
         <Suspense fallback={null}>

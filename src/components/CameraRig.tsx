@@ -3,8 +3,8 @@ import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import type { Patch } from "../content";
 
-const OVERVIEW_POS = new THREE.Vector3(0, 7.6, 19.5);
-const OVERVIEW_TARGET = new THREE.Vector3(0, 3.0, 0);
+const OVERVIEW_POS = new THREE.Vector3(0, 5.2, 18.5);
+const OVERVIEW_TARGET = new THREE.Vector3(0, 4.0, 0);
 
 export default function CameraRig({
   controls,

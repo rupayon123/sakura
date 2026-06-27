@@ -48,6 +48,46 @@ export function makePetalTexture(): THREE.Texture {
   return tex;
 }
 
+export function makeGrassTexture(): THREE.Texture {
+  const c = document.createElement("canvas");
+  c.width = c.height = 256;
+  const ctx = c.getContext("2d")!;
+  // base grass green
+  ctx.fillStyle = "#6f9a48";
+  ctx.fillRect(0, 0, 256, 256);
+  // patchy tone variation (lighter + darker blotches)
+  const blot = (color: string, n: number, rmin: number, rmax: number) => {
+    ctx.fillStyle = color;
+    for (let i = 0; i < n; i++) {
+      const x = Math.random() * 256;
+      const y = Math.random() * 256;
+      const r = rmin + Math.random() * (rmax - rmin);
+      ctx.globalAlpha = 0.18 + Math.random() * 0.22;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  };
+  blot("#7faa54", 60, 8, 26);
+  blot("#5c8a3c", 60, 8, 26);
+  blot("#86b35c", 40, 4, 12);
+  // fine speckle for grain
+  ctx.globalAlpha = 0.5;
+  for (let i = 0; i < 2200; i++) {
+    ctx.fillStyle = Math.random() > 0.5 ? "#5a8438" : "#88b75e";
+    ctx.fillRect(Math.random() * 256, Math.random() * 256, 1.4, 1.4);
+  }
+  ctx.globalAlpha = 1;
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(10, 10);
+  tex.anisotropy = 8;
+  tex.needsUpdate = true;
+  return tex;
+}
+
 export function makeBlossomTexture(): THREE.Texture {
   const c = document.createElement("canvas");
   c.width = c.height = 256;
