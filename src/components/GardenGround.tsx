@@ -86,6 +86,8 @@ export default function GardenGround({
   const mossRef = useRef<THREE.InstancedMesh>(null);
   const dryStreamRef = useRef<THREE.InstancedMesh>(null);
   const edgingRef = useRef<THREE.InstancedMesh>(null);
+  const pathEdgeRef = useRef<THREE.InstancedMesh>(null);
+  const rakeLineRef = useRef<THREE.InstancedMesh>(null);
 
   const petals = useMemo(() => {
     const r = rng(4242);
@@ -355,6 +357,53 @@ export default function GardenGround({
     return stones;
   }, [dryStream, light]);
 
+  const pathEdgeStones = useMemo(() => {
+    const r = rng(32117);
+    const colors = light
+      ? ["#cfc4ae", "#d9ceb8", "#bab09d", "#e3d6c0"]
+      : ["#6b6670", "#7a727e", "#5e5a64", "#8b828c"];
+    const stones: { x: number; z: number; rot: number; sx: number; sz: number; color: string }[] = [];
+
+    for (let i = 0; i < 34; i++) {
+      const t = 0.05 + (i / 33) * 0.9;
+      if (r() < 0.22) continue;
+      const p = mainPathPoint(t);
+      const p2 = mainPathPoint(Math.min(1, t + 0.012));
+      const tangent = new THREE.Vector2(p2.x - p.x, p2.z - p.z).normalize();
+      const side = i % 2 === 0 ? 1 : -1;
+      const normal = new THREE.Vector2(-tangent.y, tangent.x).multiplyScalar(side);
+      const spread = 0.72 + Math.sin(t * Math.PI) * 0.16 + r() * 0.16;
+      stones.push({
+        x: p.x + normal.x * spread + (r() - 0.5) * 0.18,
+        z: p.z + normal.y * spread + (r() - 0.5) * 0.18,
+        rot: r() * Math.PI,
+        sx: 0.06 + r() * 0.1,
+        sz: 0.045 + r() * 0.08,
+        color: colors[Math.floor(r() * colors.length)],
+      });
+    }
+
+    return stones;
+  }, [light]);
+
+  const rakeLines = useMemo(() => {
+    const r = rng(62441);
+    return dryStream
+      .filter((_, i) => i % 2 === 0)
+      .flatMap((s) => {
+        const lines: { x: number; z: number; rot: number; sx: number }[] = [];
+        for (let i = -1; i <= 1; i++) {
+          lines.push({
+            x: s.x + Math.cos(s.rot + Math.PI / 2) * i * 0.13 + (r() - 0.5) * 0.025,
+            z: s.z + Math.sin(s.rot + Math.PI / 2) * i * 0.13 + (r() - 0.5) * 0.025,
+            rot: s.rot + (r() - 0.5) * 0.06,
+            sx: Math.max(0.22, s.sx * (0.62 + r() * 0.12)),
+          });
+        }
+        return lines;
+      });
+  }, [dryStream]);
+
   useLayoutEffect(() => {
     const m = new THREE.Matrix4();
     const q = new THREE.Quaternion();
@@ -452,7 +501,26 @@ export default function GardenGround({
     });
     edgingRef.current!.instanceMatrix.needsUpdate = true;
     if (edgingRef.current!.instanceColor) edgingRef.current!.instanceColor.needsUpdate = true;
-  }, [petals, path, footpath, gravel, dapple, plaza, mossIslands, dryStream, dryStreamEdging]);
+
+    pathEdgeStones.forEach((p, i) => {
+      e.set(0, p.rot, 0);
+      q.setFromEuler(e);
+      m.compose(new THREE.Vector3(p.x, 0.052, p.z), q, new THREE.Vector3(p.sx, 0.035, p.sz));
+      pathEdgeRef.current!.setMatrixAt(i, m);
+      c.set(p.color);
+      pathEdgeRef.current!.setColorAt(i, c);
+    });
+    pathEdgeRef.current!.instanceMatrix.needsUpdate = true;
+    if (pathEdgeRef.current!.instanceColor) pathEdgeRef.current!.instanceColor.needsUpdate = true;
+
+    rakeLines.forEach((p, i) => {
+      e.set(0, p.rot, 0);
+      q.setFromEuler(e);
+      m.compose(new THREE.Vector3(p.x, 0.057, p.z), q, new THREE.Vector3(p.sx, 0.006, 0.018));
+      rakeLineRef.current!.setMatrixAt(i, m);
+    });
+    rakeLineRef.current!.instanceMatrix.needsUpdate = true;
+  }, [petals, path, footpath, gravel, dapple, plaza, mossIslands, dryStream, dryStreamEdging, pathEdgeStones, rakeLines]);
 
   return (
     <group>
@@ -565,6 +633,55 @@ export default function GardenGround({
           emissiveIntensity={light ? 0.18 : 0.22}
         />
       </instancedMesh>
+
+      <instancedMesh ref={rakeLineRef} args={[undefined, undefined, rakeLines.length]}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial
+          color={light ? "#efe3cd" : "#a79ca8"}
+          roughness={1}
+          transparent
+          opacity={light ? 0.34 : 0.24}
+          depthWrite={false}
+        />
+      </instancedMesh>
+
+      <instancedMesh ref={pathEdgeRef} args={[undefined, undefined, pathEdgeStones.length]} receiveShadow>
+        <dodecahedronGeometry args={[1, 0]} />
+        <meshStandardMaterial
+          vertexColors
+          color={light ? "#d8ccb8" : "#918895"}
+          roughness={1}
+          metalness={0}
+          emissive={light ? "#b8aa92" : "#665f6d"}
+          emissiveIntensity={light ? 0.12 : 0.18}
+        />
+      </instancedMesh>
+
+      {/* low water basin beside the entry path; garden detail, not a shrine marker */}
+      <group position={[-0.82, 0.055, -5.85]} rotation={[0, -0.18, 0]}>
+        <mesh castShadow receiveShadow>
+          <cylinderGeometry args={[0.38, 0.48, 0.26, 18]} />
+          <meshStandardMaterial color={light ? "#9f9789" : "#65616d"} map={stone} roughness={1} />
+        </mesh>
+        <mesh position={[0, 0.145, 0]}>
+          <cylinderGeometry args={[0.31, 0.31, 0.022, 18]} />
+          <meshStandardMaterial
+            color={light ? "#8fb7b3" : "#6f8eaa"}
+            emissive={light ? "#437d82" : "#6fa6d1"}
+            emissiveIntensity={light ? 0.08 : 0.26}
+            roughness={0.58}
+            metalness={0.02}
+          />
+        </mesh>
+        <mesh position={[0.52, 0.29, -0.02]} rotation={[0, 0, Math.PI / 2]} castShadow>
+          <cylinderGeometry args={[0.035, 0.035, 0.72, 10]} />
+          <meshStandardMaterial color={light ? "#8d7548" : "#5c4d3e"} roughness={0.86} />
+        </mesh>
+        <mesh position={[0.16, 0.27, -0.02]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+          <cylinderGeometry args={[0.028, 0.028, 0.34, 10]} />
+          <meshStandardMaterial color={light ? "#8d7548" : "#5c4d3e"} roughness={0.86} />
+        </mesh>
+      </group>
 
       {/* soft earth ring under the single sakura so the trunk feels planted */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[4.35, 0.005, 0.1]} receiveShadow>
