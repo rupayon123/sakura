@@ -52,6 +52,10 @@ const projectIds = projectsJson.map((project) => project.id);
 const exactCuratedProjects =
   projectIds.length === curatedProjectIds.length &&
   curatedProjectIds.every((id, index) => projectIds[index] === id);
+const exactGrandmotherQuote =
+  "When you begin your new life after you marry, I will plant a sakura tree for your new life as it grows with you.";
+const exactGrandmotherQuoteJa =
+  "あなたが結婚して新しい人生を始めるとき、あなたの新しい人生のために桜の木を植えます。その桜はあなたと共に育っていきます。";
 
 const checks = [
   {
@@ -67,8 +71,23 @@ const checks = [
     message: "Project data should stay limited to the curated public portfolio.",
   },
   {
+    pass:
+      content.includes(`line: "${exactGrandmotherQuote}"`) &&
+      content.includes(`lineJa: "${exactGrandmotherQuoteJa}"`) &&
+      !content.includes("When you start your new life, when you marry"),
+    message: "Grandmother quote and Japanese translation must match the latest approved wording.",
+  },
+  {
     pass: !/\bfamilyPatches\b/.test(allSource),
     message: "Family content should not return as separate flower/nav patches.",
+  },
+  {
+    pass: !/\b(?:positioon|posiiton|postion)=/.test(runtimeSource),
+    message: "Scene code must not contain misspelled position props that make objects vanish or float.",
+  },
+  {
+    pass: !scene.includes("Sparkles"),
+    message: "Dark mode should avoid square floating sparkle artifacts; use lanterns, moonlight, and petals instead.",
   },
   {
     pass: !/\b(?:console\.(?:log|debug|info|warn|error)|debugger|alert\(|prompt\(|confirm\()\b/.test(
@@ -131,15 +150,28 @@ const checks = [
   },
   {
     pass:
-      cameraRig.includes("c.autoRotate = !focused && entered && motion") &&
+      cameraRig.includes("const canOrbit = !focused && entered") &&
+      cameraRig.includes("c.autoRotate = canOrbit && motion && !userOrbiting.current") &&
       scene.includes("<Petals count={petalCount} play={motion}") &&
       scene.includes("<Tree motion={motion}") &&
       scene.includes("speed={motion ? 0.08 : 0}") &&
-      scene.includes("speed={motion ? 0.35 : 0}") &&
       scene.includes("<GrassTufts count={isMobile ? 72 : 160} theme={theme} play={motion}") &&
       scene.includes("<PlantingBeds count={plantingCount} play={motion} theme={theme}") &&
       app.includes("setMotion((m) => !m)"),
     message: "Motion toggle must continue to control orbit, petals, tree, clouds, grass, and planting beds.",
+  },
+  {
+    pass:
+      cameraRig.includes("userOrbiting: React.MutableRefObject<boolean>") &&
+      cameraRig.includes("c.autoRotate = canOrbit && motion && !userOrbiting.current") &&
+      cameraRig.includes("c.update();") &&
+      scene.includes("const userOrbiting = useRef(false)") &&
+      scene.includes("onStart={() =>") &&
+      scene.includes("userOrbiting.current = true") &&
+      scene.includes("onEnd={() =>") &&
+      scene.includes("userOrbiting.current = false") &&
+      scene.includes("controls.current.update()"),
+    message: "Orbit controls must resume motion cleanly after the user drags the camera.",
   },
   {
     pass:
@@ -162,6 +194,17 @@ const checks = [
       building.includes("key={`rafter-${x}`}") &&
       building.includes("StoneStep position={[3.9, 0.035, 4.72]}"),
     message: "The Japanese home must keep veranda craft, roof detail, and a grounded genkan apron.",
+  },
+  {
+    pass:
+      /<Building\s+[\s\S]*?position=\{\[-0\.8, 0, -10\.35\]\}/.test(scene) &&
+      building.includes("<mesh position={[0, 0.22, 0]} castShadow receiveShadow>") &&
+      building.includes("<boxGeometry args={[9.8, 0.44, 4.65]} />") &&
+      building.includes("<mesh position={[-0.35, 0.5, 2.38]} castShadow receiveShadow>") &&
+      building.includes("StoneStep position={[3.9, 0.035, 4.72]}") &&
+      building.includes("StoneStep position={[3.9, 0.08, 3.55]}") &&
+      building.includes("StoneStep position={[3.9, 0.045, 4.18]}"),
+    message: "House placement must stay physically grounded with foundation, veranda, and low entry steps.",
   },
   {
     pass:

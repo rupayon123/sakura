@@ -14,12 +14,14 @@ export default function CameraRig({
   entered,
   motion,
   isMobile,
+  userOrbiting,
 }: {
   controls: React.MutableRefObject<any>;
   focused: Patch | null;
   entered: boolean;
   motion: boolean;
   isMobile: boolean;
+  userOrbiting: React.MutableRefObject<boolean>;
 }) {
   const { camera } = useThree();
   const desiredPos = useRef((isMobile ? MOBILE_OVERVIEW_POS : OVERVIEW_POS).clone());
@@ -61,10 +63,12 @@ export default function CameraRig({
         animating.current = false;
       }
     } else {
-      // settled: hand control back. drei calls update() whenever enabled,
-      // which drives autoRotate — so this reliably resumes after exiting a flower.
-      c.enabled = !focused && entered;
-      c.autoRotate = !focused && entered && motion;
+      // Settled: hand control back and keep updating it ourselves so
+      // auto-rotate resumes after pointer drags instead of waiting for a new grab.
+      const canOrbit = !focused && entered;
+      c.enabled = canOrbit;
+      c.autoRotate = canOrbit && motion && !userOrbiting.current;
+      c.update();
     }
   });
 

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { useThree } from "@react-three/fiber";
-import { OrbitControls, Sparkles, ContactShadows, Cloud, Clouds } from "@react-three/drei";
+import { OrbitControls, ContactShadows, Cloud, Clouds } from "@react-three/drei";
 import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
 import Tree from "./Tree";
 import Petals from "./Petals";
@@ -29,6 +29,7 @@ interface Props {
 
 export default function Scene({ focused, setFocused, entered, motion, isMobile, theme }: Props) {
   const controls = useRef<any>(null);
+  const userOrbiting = useRef(false);
   const focusedPatch = allPatches.find((p) => p.id === focused) ?? null;
   const light = theme === "light";
   const { gl } = useThree();
@@ -107,7 +108,14 @@ export default function Scene({ focused, setFocused, entered, motion, isMobile, 
         </>
       )}
 
-      <CameraRig controls={controls} focused={focusedPatch} entered={entered} motion={motion} isMobile={isMobile} />
+      <CameraRig
+        controls={controls}
+        focused={focusedPatch}
+        entered={entered}
+        motion={motion}
+        isMobile={isMobile}
+        userOrbiting={userOrbiting}
+      />
       <OrbitControls
         ref={controls}
         enablePan={false}
@@ -117,6 +125,17 @@ export default function Scene({ focused, setFocused, entered, motion, isMobile, 
         enableDamping
         dampingFactor={0.08}
         autoRotateSpeed={0.08}
+        onStart={() => {
+          userOrbiting.current = true;
+          if (controls.current) controls.current.autoRotate = false;
+        }}
+        onEnd={() => {
+          userOrbiting.current = false;
+          if (controls.current) {
+            controls.current.autoRotate = !focusedPatch && entered && motion;
+            controls.current.update();
+          }
+        }}
       />
 
       {/* one huge weeping sakura — the centerpiece */}
@@ -152,18 +171,6 @@ export default function Scene({ focused, setFocused, entered, motion, isMobile, 
         opacity={light ? 0.28 : 0.26}
         color={light ? "#4a3a2a" : "#18101b"}
       />
-
-      {!light && (
-        <Sparkles
-          count={isMobile ? 40 : 90}
-          scale={[10, 8, 10]}
-          position={[0, 4, 0]}
-          size={3.2}
-          speed={motion ? 0.35 : 0}
-          color="#ffd1e6"
-          opacity={0.75}
-        />
-      )}
 
       {markerPatches.map((p) => (
         <FlowerPatch

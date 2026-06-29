@@ -28,8 +28,8 @@ export interface Patch {
 
 /* The words that started everything — shown on the opening overlay (bilingual). */
 export const grandmotherQuote = {
-  line: "When you start your new life, when you marry, the sakura tree I plant will grow with you.",
-  lineJa: "あなたが結婚し、新しい人生を歩み始めるとき、私が植える桜の木も、あなたと共に育っていく。",
+  line: "When you begin your new life after you marry, I will plant a sakura tree for your new life as it grows with you.",
+  lineJa: "あなたが結婚して新しい人生を始めるとき、あなたの新しい人生のために桜の木を植えます。その桜はあなたと共に育っていきます。",
   attribution: "— my grandmother",
   attributionJa: "— 祖母より",
 };
@@ -77,7 +77,7 @@ export const houseStoryPatch: Patch = {
   kind: "family",
   title: "栗原の家",
   meta: "the house behind the garden",
-  body: "This house carries the family story instead of putting it in the main navigation: a quiet memory of a real grandmother's home, marked with 「栗原の家」. It gives the garden its roots. Her sakura promise is why the tree stands here: when a new life begins, the sakura she plants grows with it.",
+  body: "This house carries the family story instead of putting it in the main navigation: a quiet memory of a real grandmother's home, marked with 「栗原の家」. It gives the garden its roots. Her sakura promise is why the tree stands here: when you begin your new life after you marry, she will plant a sakura tree for that new life as it grows with you.",
 };
 
 /* ----------------------------------------------------------------------------
