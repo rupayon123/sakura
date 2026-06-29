@@ -73,35 +73,29 @@ function EarthBerm({ position, scale, theme }: { position: Vec3; scale: Vec3; th
   );
 }
 
-function LowGardenWall({
-  position,
-  rotation = 0,
-  length,
-  theme,
-}: {
-  position: Vec3;
-  rotation?: number;
-  length: number;
-  theme: "dark" | "light";
-}) {
+function HorizonHaze({ theme }: { theme: "dark" | "light" }) {
   const light = theme === "light";
-  const plaster = light ? "#d7c8b4" : "#504a58";
-  const stone = light ? "#aaa294" : "#514e58";
-  const cap = light ? "#806143" : "#38303a";
-
   return (
-    <group position={position} rotation={[0, rotation, 0]}>
-      <mesh position={[0, 0.08, 0]} castShadow receiveShadow>
-        <boxGeometry args={[length, 0.16, 0.32]} />
-        <meshStandardMaterial color={stone} roughness={0.95} />
+    <group>
+      <mesh position={[-7, 0.72, -23.8]} renderOrder={-2}>
+        <planeGeometry args={[34, 1.55]} />
+        <meshBasicMaterial
+          color={light ? "#ffe0bf" : "#40304b"}
+          transparent
+          opacity={light ? 0.28 : 0.22}
+          depthWrite={false}
+          toneMapped={false}
+        />
       </mesh>
-      <mesh position={[0, 0.31, 0]} castShadow receiveShadow>
-        <boxGeometry args={[length, 0.3, 0.24]} />
-        <meshStandardMaterial color={plaster} roughness={0.92} />
-      </mesh>
-      <mesh position={[0, 0.5, 0]} castShadow receiveShadow>
-        <boxGeometry args={[length + 0.16, 0.08, 0.36]} />
-        <meshStandardMaterial color={cap} roughness={0.84} />
+      <mesh position={[14, 0.58, -25.6]} renderOrder={-2}>
+        <planeGeometry args={[28, 1.25]} />
+        <meshBasicMaterial
+          color={light ? "#fff0d7" : "#2f2f4c"}
+          transparent
+          opacity={light ? 0.18 : 0.14}
+          depthWrite={false}
+          toneMapped={false}
+        />
       </mesh>
     </group>
   );
@@ -112,18 +106,18 @@ export default function CourtyardFrame({ theme }: { theme: "dark" | "light" }) {
 
   return (
     <group>
+      <EarthBerm position={[-16, -0.5, -15.8]} scale={[12, 1.18, 3.4]} theme={theme} />
+      <EarthBerm position={[14, -0.52, -16.8]} scale={[14, 1.12, 3.6]} theme={theme} />
+      <EarthBerm position={[0, -0.62, -19.2]} scale={[24, 1.26, 3.8]} theme={theme} />
       <EarthBerm position={[-9.5, -0.48, -22]} scale={[15, 1.65, 5.2]} theme={theme} />
       <EarthBerm position={[8.5, -0.5, -23.5]} scale={[13, 1.45, 4.8]} theme={theme} />
       <EarthBerm position={[0, -0.55, -27]} scale={[22, 1.75, 4.8]} theme={theme} />
+      <HorizonHaze theme={theme} />
 
       <BambooFence position={[-9.6, 0, 3.7]} rotation={0.58} length={5.2} theme={theme} />
       <BambooFence position={[8.9, 0, 4.0]} rotation={-0.48} length={5.1} theme={theme} />
       <BambooFence position={[-8.8, 0, -3.3]} rotation={Math.PI / 2} length={5.8} theme={theme} />
       <BambooFence position={[9.0, 0, -3.0]} rotation={Math.PI / 2} length={5.4} theme={theme} />
-
-      <LowGardenWall position={[0, 0, -15.35]} rotation={0.02} length={18.5} theme={theme} />
-      <LowGardenWall position={[6.2, 0, -3.15]} rotation={-0.08} length={5.8} theme={theme} />
-      <LowGardenWall position={[-6.2, 0, -3.6]} rotation={0.1} length={4.7} theme={theme} />
 
       <GardenStone position={[-7.15, 0.08, 1.2]} scale={[0.42, 0.08, 0.28]} theme={theme} />
       <GardenStone position={[7.25, 0.075, 0.65]} scale={[0.36, 0.075, 0.25]} theme={theme} />
