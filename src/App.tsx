@@ -106,8 +106,8 @@ export default function App() {
             shadows
             dpr={[1, isMobile ? 1.5 : 2]}
             camera={{
-              position: isMobile ? [-5.55, 1.58, 11.25] : [-6.25, 1.36, 6.75],
-              fov: isMobile ? 69 : 52,
+              position: isMobile ? [-4.65, 1.48, 8.6] : [-6.1, 1.56, 7.55],
+              fov: isMobile ? 64 : 50,
             }}
             gl={{ antialias: true }}
             fallback={<WebGLFallback />}
