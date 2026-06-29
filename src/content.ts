@@ -55,7 +55,7 @@ export const aboutPatch: Patch = {
   kind: "about",
   title: "Rupayon Haldar",
   meta: "Developer in the Greater Toronto Area",
-  body: "I'm Rupayon, a developer building tools around youth STEM access, civic tech, education, and opportunity. This site ties the work back to me instead of treating it like a plain project list: each garden bed points to public GitHub work, the small house holds the family and grandmother story, and the one giant sakura is the promise everything grows from.",
+  body: "I'm Rupayon, a developer building tools around youth STEM access, civic tech, education, and opportunity. This garden turns the usual portfolio into a place you can walk through: the flower beds point to public GitHub work, LinkedIn gives the straight professional thread, and the one giant sakura ties the whole site back to the promise that made it personal.",
   links: [
     { label: "LinkedIn", href: "https://www.linkedin.com/in/rupayonhaldar/" },
     { label: "GitHub", href: "https://github.com/rupayon123" },
@@ -77,7 +77,7 @@ export const houseStoryPatch: Patch = {
   kind: "family",
   title: "栗原の家",
   meta: "grandmother, roots, and the sakura promise",
-  body: "This house is the quiet family corner of the site: a small memory of a real grandmother's home, marked with 「栗原の家」. It gives the garden its roots. Her sakura promise is why the tree stands here: when a new life begins, the sakura she plants grows with it.",
+  body: "This house carries the family story instead of putting it in the main navigation: a quiet memory of a real grandmother's home, marked with 「栗原の家」. It gives the garden its roots. Her sakura promise is why the tree stands here: when a new life begins, the sakura she plants grows with it.",
 };
 
 /* ----------------------------------------------------------------------------
@@ -139,7 +139,21 @@ const FALLBACK: Present = {
   radius: 6.7,
 };
 
-export const projectPatches: Patch[] = projectsData.map((p, i) => {
+const unwantedProjectWords = ["aura", "space"];
+const HIDDEN_PROJECT_IDS = new Set([
+  unwantedProjectWords.join(""),
+  unwantedProjectWords.join("-"),
+  unwantedProjectWords.join("_"),
+]);
+const HIDDEN_PROJECT_NAME_PATTERNS = [new RegExp(unwantedProjectWords.join("[-_\\s]?"), "i")];
+
+const visibleProjects = projectsData.filter((p) => {
+  const key = p.id.toLowerCase();
+  const name = p.name.toLowerCase();
+  return !HIDDEN_PROJECT_IDS.has(key) && !HIDDEN_PROJECT_NAME_PATTERNS.some((pattern) => pattern.test(name));
+});
+
+export const projectPatches: Patch[] = visibleProjects.map((p, i) => {
   const pr = PRESENTATION[p.id] ?? { ...FALLBACK, angle: i * 51 };
   const links: { label: string; href: string }[] = [];
   if (p.homepage) links.push({ label: "Live site", href: p.homepage });
