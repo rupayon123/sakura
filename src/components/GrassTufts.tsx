@@ -47,7 +47,7 @@ export default function GrassTufts({
         z = bed.z + Math.sin(a) * rr * bed.rz;
         const clearMainPath = Math.abs(x + 0.15) > 1.15 || z < -6.2 || z > 8.4;
         const clearHouseStep = !(z < -5.8 && Math.abs(x - 3.9) < 1.6);
-        const clearTreeBase = Math.hypot(x - 4.7, z - 0.2) > 2.35;
+        const clearTreeBase = Math.hypot(x - 4.35, z - 0.1) > 2.35;
         if (clearMainPath && clearHouseStep && clearTreeBase) break;
       }
 
