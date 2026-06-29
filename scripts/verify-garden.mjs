@@ -31,6 +31,14 @@ const styles = read("src/styles.css");
 const indexHtml = read("index.html");
 const fetchProjects = read("scripts/fetch-projects.mjs");
 const readme = read("README.md");
+const projectsJson = JSON.parse(read("src/projects.json"));
+const curatedProjectIds = [
+  "gta-free-stem-opportunities",
+  "gta-free-stem-ios",
+  "arduino-blocks-lab",
+  "PipHackLup",
+  "all-in-one-resume-builder-job-assist-applier",
+];
 const sourceFiles = walk(join(root, "src")).filter((file) => /\.(ts|tsx|json|css|html)$/.test(file));
 const allSource = sourceFiles
   .map((file) => `\n/* ${relative(root, file)} */\n${readFileSync(file, "utf8")}`)
@@ -40,10 +48,10 @@ const runtimeSource = runtimeSourceFiles
   .map((file) => `\n/* ${relative(root, file)} */\n${readFileSync(file, "utf8")}`)
   .join("\n");
 const mainPathMesh = gardenGround.match(/<instancedMesh ref=\{plazaRef\}[\s\S]*?<\/instancedMesh>/)?.[0] ?? "";
-const bannedProjectPattern = new RegExp(
-  `\\b(?:${["Aura", "Space"].join("")}|${["my", "app"].join("-")})\\b`,
-  "i"
-);
+const projectIds = projectsJson.map((project) => project.id);
+const exactCuratedProjects =
+  projectIds.length === curatedProjectIds.length &&
+  curatedProjectIds.every((id, index) => projectIds[index] === id);
 
 const checks = [
   {
@@ -55,12 +63,8 @@ const checks = [
     message: "Tree-like shrub/bush component must stay disabled.",
   },
   {
-    pass: !bannedProjectPattern.test(allSource),
-    message: "Old starter/demo project names must not appear in source content or project data.",
-  },
-  {
-    pass: !bannedProjectPattern.test(fetchProjects),
-    message: "Old starter/demo project names must not be reintroduced by the project fetch script.",
+    pass: exactCuratedProjects && curatedProjectIds.every((id) => fetchProjects.includes(`"${id}"`)),
+    message: "Project data should stay limited to the curated public portfolio.",
   },
   {
     pass: !/\bfamilyPatches\b/.test(allSource),
@@ -170,7 +174,7 @@ const checks = [
     pass:
       plantingBeds.includes("const bedBase = useRef<THREE.InstancedMesh>(null)") &&
       plantingBeds.includes("opacity={theme === \"dark\" ? 0.28 : 0.24}") &&
-      scene.includes("const plantingCount = isMobile ? 130 : 300"),
+      scene.includes("const plantingCount = isMobile ? 160 : 380"),
     message: "Low planted beds must keep grounded bed bases and enough flowers to avoid a flat toy field.",
   },
   {

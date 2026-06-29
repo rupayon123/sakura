@@ -20,10 +20,8 @@ const CURATED = [
 ];
 
 const gh = (args) => execFileSync("gh", args, { encoding: "utf8" });
-const hiddenProjectPattern = new RegExp(["aura", "space"].join("[-_\\s]?"), "i");
-const curatedProjects = CURATED.filter((repo) => !hiddenProjectPattern.test(repo));
 
-const projects = curatedProjects.map((repo) => {
+const projects = CURATED.map((repo) => {
   const meta = JSON.parse(gh(["api", `repos/${OWNER}/${repo}`]));
   let languages = {};
   try {

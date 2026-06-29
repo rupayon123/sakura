@@ -39,7 +39,7 @@ export default function Scene({ focused, setFocused, entered, motion, isMobile, 
   }, [gl, light]);
 
   const petalCount = isMobile ? 480 : 1300;
-  const plantingCount = isMobile ? 130 : 300;
+  const plantingCount = isMobile ? 160 : 380;
   const fogColor = light ? "#f9dcc8" : "#2a1c31";
 
   return (
@@ -122,7 +122,7 @@ export default function Scene({ focused, setFocused, entered, motion, isMobile, 
       {/* one huge weeping sakura — the centerpiece */}
       <Tree motion={motion} detail={isMobile ? 0.45 : 1} position={[4.35, 0, 0.1]} scale={1.47} seed={20240426} />
       <Petals count={petalCount} play={motion} theme={theme} />
-      <GardenGround theme={theme} petalCount={isMobile ? 400 : 700} />
+      <GardenGround theme={theme} petalCount={isMobile ? 520 : 980} />
       <GrassTufts count={isMobile ? 72 : 160} theme={theme} play={motion} />
       <PlantingBeds count={plantingCount} play={motion} theme={theme} />
       <Rocks count={0} />

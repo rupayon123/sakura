@@ -88,6 +88,7 @@ export default function GardenGround({
   const edgingRef = useRef<THREE.InstancedMesh>(null);
   const pathEdgeRef = useRef<THREE.InstancedMesh>(null);
   const rakeLineRef = useRef<THREE.InstancedMesh>(null);
+  const thresholdRef = useRef<THREE.InstancedMesh>(null);
 
   const petals = useMemo(() => {
     const r = rng(4242);
@@ -207,20 +208,21 @@ export default function GardenGround({
       : ["#1c2a24", "#22352c", "#2a2531", "#263b2f"];
     const patches: { x: number; z: number; rot: number; sx: number; sz: number; color: string }[] = [];
 
-    for (let i = 0; i < 42; i++) {
+    for (let i = 0; i < 34; i++) {
       const a = r() * Math.PI * 2;
-      const rad = Math.sqrt(r()) * 9.8;
+      const rad = Math.sqrt(r()) * 8.7;
       const x = 4.35 + Math.cos(a) * rad;
       const z = 0.1 + Math.sin(a) * rad * 0.72;
       const clearHouse = !(z < -6.4 && Math.abs(x) < 5.4);
       const clearEntry = !(z < -4.9 && z > -8.6 && x > 2.4 && x < 5.3);
-      if (!clearHouse || !clearEntry) continue;
+      const clearForeground = z < 4.4 || Math.abs(x) > 4.8;
+      if (!clearHouse || !clearEntry || !clearForeground) continue;
       patches.push({
         x,
         z,
         rot: r() * Math.PI,
-        sx: 0.65 + r() * 1.9,
-        sz: 0.18 + r() * 0.68,
+        sx: 0.48 + r() * 1.25,
+        sz: 0.14 + r() * 0.44,
         color: tones[Math.floor(r() * tones.length)],
       });
     }
@@ -234,8 +236,8 @@ export default function GardenGround({
       ? ["#ded3bf", "#eadfca", "#d3c7af", "#e2d4bb", "#c8bba4"]
       : ["#9b939e", "#aaa1ab", "#8a8491", "#b3a8ad", "#96909d"];
     const tiles: { x: number; z: number; rot: number; sx: number; sz: number; color: string }[] = [];
-    for (let i = 0; i < 21; i++) {
-      const t = i / 20;
+    for (let i = 0; i < 28; i++) {
+      const t = i / 27;
       const p = mainPathPoint(t);
       const halfWidth = 0.52 + Math.sin(t * Math.PI) * 0.22;
       const lanes = t > 0.78 && r() > 0.72 ? [0, r() > 0.5 ? -1 : 1] : [0];
@@ -244,8 +246,8 @@ export default function GardenGround({
           x: p.x + lane * halfWidth + (r() - 0.5) * 0.16,
           z: p.z + (r() - 0.5) * 0.18,
           rot: (r() - 0.5) * 0.34,
-          sx: 0.34 + r() * 0.14,
-          sz: 0.26 + r() * 0.1,
+          sx: 0.26 + r() * 0.11,
+          sz: 0.2 + r() * 0.08,
           color: colors[Math.floor(r() * colors.length)],
         });
       }
@@ -276,6 +278,39 @@ export default function GardenGround({
       });
     });
     return tiles;
+  }, [light]);
+
+  const thresholdSlabs = useMemo(() => {
+    const r = rng(8806);
+    const colors = light
+      ? ["#ddd0bb", "#e9dcc6", "#cfc2ad", "#f0e4d0"]
+      : ["#8f8894", "#a59ba6", "#7b7682", "#aaa0aa"];
+    const slabs: { x: number; z: number; rot: number; sx: number; sz: number; color: string }[] = [];
+    const placements = [
+      { t: -0.035, lane: 0.0, sx: 0.76, sz: 0.44 },
+      { t: 0.01, lane: -0.45, sx: 0.58, sz: 0.36 },
+      { t: 0.055, lane: 0.36, sx: 0.62, sz: 0.34 },
+      { t: 0.105, lane: -0.1, sx: 0.54, sz: 0.32 },
+      { t: 0.15, lane: 0.42, sx: 0.5, sz: 0.3 },
+      { t: 0.195, lane: -0.34, sx: 0.48, sz: 0.28 },
+    ];
+
+    placements.forEach((tile) => {
+      const p = mainPathPoint(tile.t);
+      const p2 = mainPathPoint(tile.t + 0.02);
+      const tangent = new THREE.Vector2(p2.x - p.x, p2.z - p.z).normalize();
+      const normal = new THREE.Vector2(-tangent.y, tangent.x);
+      slabs.push({
+        x: p.x + normal.x * tile.lane + (r() - 0.5) * 0.08,
+        z: p.z + normal.y * tile.lane + (r() - 0.5) * 0.08,
+        rot: Math.atan2(tangent.x, tangent.y) + (r() - 0.5) * 0.22,
+        sx: tile.sx + r() * 0.06,
+        sz: tile.sz + r() * 0.05,
+        color: colors[Math.floor(r() * colors.length)],
+      });
+    });
+
+    return slabs;
   }, [light]);
 
   const mossIslands = useMemo(() => {
@@ -364,8 +399,8 @@ export default function GardenGround({
       : ["#6b6670", "#7a727e", "#5e5a64", "#8b828c"];
     const stones: { x: number; z: number; rot: number; sx: number; sz: number; color: string }[] = [];
 
-    for (let i = 0; i < 34; i++) {
-      const t = 0.05 + (i / 33) * 0.9;
+    for (let i = 0; i < 54; i++) {
+      const t = 0.04 + (i / 53) * 0.92;
       if (r() < 0.22) continue;
       const p = mainPathPoint(t);
       const p2 = mainPathPoint(Math.min(1, t + 0.012));
@@ -377,8 +412,8 @@ export default function GardenGround({
         x: p.x + normal.x * spread + (r() - 0.5) * 0.18,
         z: p.z + normal.y * spread + (r() - 0.5) * 0.18,
         rot: r() * Math.PI,
-        sx: 0.06 + r() * 0.1,
-        sz: 0.045 + r() * 0.08,
+        sx: 0.045 + r() * 0.075,
+        sz: 0.035 + r() * 0.06,
         color: colors[Math.floor(r() * colors.length)],
       });
     }
@@ -397,7 +432,7 @@ export default function GardenGround({
             x: s.x + Math.cos(s.rot + Math.PI / 2) * i * 0.13 + (r() - 0.5) * 0.025,
             z: s.z + Math.sin(s.rot + Math.PI / 2) * i * 0.13 + (r() - 0.5) * 0.025,
             rot: s.rot + (r() - 0.5) * 0.06,
-            sx: Math.max(0.22, s.sx * (0.62 + r() * 0.12)),
+            sx: Math.max(0.18, s.sx * (0.42 + r() * 0.08)),
           });
         }
         return lines;
@@ -469,6 +504,17 @@ export default function GardenGround({
     plazaRef.current!.instanceMatrix.needsUpdate = true;
     if (plazaRef.current!.instanceColor) plazaRef.current!.instanceColor.needsUpdate = true;
 
+    thresholdSlabs.forEach((p, i) => {
+      e.set(0, p.rot, 0);
+      q.setFromEuler(e);
+      m.compose(new THREE.Vector3(p.x, 0.058, p.z), q, new THREE.Vector3(p.sx, 0.055, p.sz));
+      thresholdRef.current!.setMatrixAt(i, m);
+      c.set(p.color);
+      thresholdRef.current!.setColorAt(i, c);
+    });
+    thresholdRef.current!.instanceMatrix.needsUpdate = true;
+    if (thresholdRef.current!.instanceColor) thresholdRef.current!.instanceColor.needsUpdate = true;
+
     mossIslands.forEach((p, i) => {
       e.set(0, p.rot, 0);
       q.setFromEuler(e);
@@ -520,7 +566,7 @@ export default function GardenGround({
       rakeLineRef.current!.setMatrixAt(i, m);
     });
     rakeLineRef.current!.instanceMatrix.needsUpdate = true;
-  }, [petals, path, footpath, gravel, dapple, plaza, mossIslands, dryStream, dryStreamEdging, pathEdgeStones, rakeLines]);
+  }, [petals, path, footpath, gravel, dapple, plaza, thresholdSlabs, mossIslands, dryStream, dryStreamEdging, pathEdgeStones, rakeLines]);
 
   return (
     <group>
@@ -541,7 +587,7 @@ export default function GardenGround({
         <meshStandardMaterial
           vertexColors
           transparent
-          opacity={light ? 0.16 : 0.1}
+          opacity={light ? 0.085 : 0.07}
           roughness={1}
           metalness={0}
           depthWrite={false}
@@ -586,6 +632,20 @@ export default function GardenGround({
           metalness={0.02}
           emissive={light ? "#d6c2a3" : "#75697c"}
           emissiveIntensity={light ? 0.28 : 0.4}
+        />
+      </instancedMesh>
+
+      {/* modest foreground threshold into the garden path, not a plaza */}
+      <instancedMesh ref={thresholdRef} args={[undefined, undefined, thresholdSlabs.length]} receiveShadow>
+        <dodecahedronGeometry args={[1, 0]} />
+        <meshStandardMaterial
+          vertexColors
+          map={stone}
+          color={light ? "#eadcc7" : "#ada3ae"}
+          roughness={0.96}
+          metalness={0.02}
+          emissive={light ? "#d1bea0" : "#716679"}
+          emissiveIntensity={light ? 0.2 : 0.34}
         />
       </instancedMesh>
 
@@ -640,7 +700,7 @@ export default function GardenGround({
           color={light ? "#efe3cd" : "#a79ca8"}
           roughness={1}
           transparent
-          opacity={light ? 0.34 : 0.24}
+          opacity={light ? 0.08 : 0.055}
           depthWrite={false}
         />
       </instancedMesh>

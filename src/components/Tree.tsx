@@ -161,6 +161,24 @@ function buildTree(seed: number, density: number) {
     }
   };
 
+  const addFeatureLimb = () => {
+    const limb = [
+      crown.clone().add(new THREE.Vector3(-0.18, 0.02, 0.05)),
+      crown.clone().add(new THREE.Vector3(-1.25, 0.35, 0.22)),
+      crown.clone().add(new THREE.Vector3(-2.55, 0.48, 0.58)),
+      crown.clone().add(new THREE.Vector3(-3.9, 0.35, 1.06)),
+      crown.clone().add(new THREE.Vector3(-5.2, 0.02, 1.58)),
+    ];
+    const radii = [0.2, 0.17, 0.135, 0.105];
+
+    for (let i = 0; i < limb.length - 1; i++) {
+      segs.push({ a: limb[i].clone(), b: limb[i + 1].clone(), r: radii[i] });
+      if (i > 0) {
+        addCluster(limb[i + 1], 0.78 + rng() * 0.28, Math.round((34 + rng() * 16) * density));
+      }
+    }
+  };
+
   // a branch that rises then arcs downward (weeping), spawning children + blossoms
   function grow(
     start: THREE.Vector3,
@@ -252,6 +270,7 @@ function buildTree(seed: number, density: number) {
     );
   }
 
+  addFeatureLimb();
   addHangingCanopy(Math.round(164 * density));
   addOverheadCanopy(Math.round(74 * density));
 

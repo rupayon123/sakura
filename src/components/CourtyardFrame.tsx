@@ -148,6 +148,48 @@ function BackGardenWall({ theme }: { theme: "dark" | "light" }) {
   );
 }
 
+function SideGardenWall({ theme }: { theme: "dark" | "light" }) {
+  const light = theme === "light";
+  const plaster = light ? "#e8d6c6" : "#675565";
+  const timber = light ? "#70422f" : "#3d2934";
+  const cap = light ? "#67747c" : "#343a4d";
+  const runs = [
+    { x: 10.1, z: -0.55, w: 8.8, r: Math.PI / 2 },
+    { x: -10.25, z: -1.25, w: 7.6, r: Math.PI / 2 },
+  ];
+
+  return (
+    <group>
+      {runs.map((run, i) => (
+        <group key={i} position={[run.x, 0, run.z]} rotation={[0, run.r, 0]}>
+          <mesh position={[0, 0.34, 0]} castShadow receiveShadow>
+            <boxGeometry args={[run.w, 0.68, 0.16]} />
+            <meshStandardMaterial
+              color={plaster}
+              roughness={0.95}
+              emissive={light ? "#000000" : "#382e39"}
+              emissiveIntensity={light ? 0 : 0.1}
+            />
+          </mesh>
+          <mesh position={[0, 0.74, 0]} castShadow receiveShadow>
+            <boxGeometry args={[run.w + 0.22, 0.12, 0.3]} />
+            <meshStandardMaterial color={cap} roughness={0.84} metalness={0.03} />
+          </mesh>
+          {Array.from({ length: Math.ceil(run.w / 2.2) + 1 }, (_, post) => {
+            const x = -run.w / 2 + post * (run.w / Math.ceil(run.w / 2.2));
+            return (
+              <mesh key={post} position={[x, 0.36, 0.03]} castShadow receiveShadow>
+                <boxGeometry args={[0.1, 0.7, 0.2]} />
+                <meshStandardMaterial color={timber} roughness={0.86} />
+              </mesh>
+            );
+          })}
+        </group>
+      ))}
+    </group>
+  );
+}
+
 export default function CourtyardFrame({ theme }: { theme: "dark" | "light" }) {
   const light = theme === "light";
 
@@ -158,9 +200,10 @@ export default function CourtyardFrame({ theme }: { theme: "dark" | "light" }) {
       <EarthBerm position={[0, -0.62, -19.2]} scale={[24, 1.26, 3.8]} theme={theme} />
       <EarthBerm position={[-9.5, -0.48, -22]} scale={[15, 1.65, 5.2]} theme={theme} />
       <EarthBerm position={[8.5, -0.5, -23.5]} scale={[13, 1.45, 4.8]} theme={theme} />
-      <EarthBerm position={[0, -0.55, -27]} scale={[22, 1.75, 4.8]} theme={theme} />
+      <EarthBerm positioon={[0, -0.55, -27]} scale={[22, 1.75, 4.8]} theme={theme} />
       <HorizonHaze theme={theme} />
       <BackGardenWall theme={theme} />
+      <SideGardenWall theme={theme} />
 
       <BambooFence position={[-9.6, 0, 3.7]} rotation={0.58} length={5.2} theme={theme} />
       <BambooFence position={[8.9, 0, 4.0]} rotation={-0.48} length={5.1} theme={theme} />

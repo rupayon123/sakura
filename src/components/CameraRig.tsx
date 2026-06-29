@@ -3,10 +3,10 @@ import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import type { Patch } from "../content";
 
-const OVERVIEW_POS = new THREE.Vector3(-4.6, 1.38, 5.25);
-const OVERVIEW_TARGET = new THREE.Vector3(0.65, 1.25, -7.95);
-const MOBILE_OVERVIEW_POS = new THREE.Vector3(-4.15, 1.5, 7.0);
-const MOBILE_OVERVIEW_TARGET = new THREE.Vector3(0.2, 1.35, -7.7);
+const OVERVIEW_POS = new THREE.Vector3(-4.05, 1.18, 4.05);
+const OVERVIEW_TARGET = new THREE.Vector3(0.1, 1.82, -8.55);
+const MOBILE_OVERVIEW_POS = new THREE.Vector3(-3.85, 1.34, 5.85);
+const MOBILE_OVERVIEW_TARGET = new THREE.Vector3(-0.45, 1.82, -8.05);
 
 export default function CameraRig({
   controls,

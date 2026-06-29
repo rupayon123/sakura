@@ -139,24 +139,10 @@ const FALLBACK: Present = {
   radius: 6.7,
 };
 
-const unwantedProjectWords = ["aura", "space"];
-const HIDDEN_PROJECT_IDS = new Set([
-  unwantedProjectWords.join(""),
-  unwantedProjectWords.join("-"),
-  unwantedProjectWords.join("_"),
-]);
-const HIDDEN_PROJECT_NAME_PATTERNS = [new RegExp(unwantedProjectWords.join("[-_\\s]?"), "i")];
-
-const visibleProjects = projectsData.filter((p) => {
-  const key = p.id.toLowerCase();
-  const name = p.name.toLowerCase();
-  return !HIDDEN_PROJECT_IDS.has(key) && !HIDDEN_PROJECT_NAME_PATTERNS.some((pattern) => pattern.test(name));
-});
-
-export const projectPatches: Patch[] = visibleProjects.map((p, i) => {
+export const projectPatches: Patch[] = projectsData.map((p, i) => {
   const pr = PRESENTATION[p.id] ?? { ...FALLBACK, angle: i * 51 };
   const links: { label: string; href: string }[] = [];
-  if (p.homepage) links.push({ label: "Live site", href: p.homepage });
+  if (p.homepage) links.push({ label: "Live site", href: p.homepage) });
   links.push({ label: "GitHub", href: p.repo });
   const metaBits = [p.languages.join(" · "), p.stars ? `★ ${p.stars}` : ""].filter(Boolean);
   return {
