@@ -101,6 +101,53 @@ function HorizonHaze({ theme }: { theme: "dark" | "light" }) {
   );
 }
 
+function BackGardenWall({ theme }: { theme: "dark" | "light" }) {
+  const light = theme === "light";
+  const plaster = light ? "#ead9c8" : "#6e5a67";
+  const timber = light ? "#744331" : "#3f2a35";
+  const cap = light ? "#687680" : "#343b4e";
+  const stone = light ? "#b8ad9a" : "#5f5b65";
+  const wallRuns = [
+    { x: -8.4, z: -13.95, w: 9.2, r: 0.03 },
+    { x: 6.2, z: -14.25, w: 10.6, r: -0.04 },
+  ];
+
+  return (
+    <group>
+      {wallRuns.map((run, i) => (
+        <group key={i} position={[run.x, 0, run.z]} rotation={[0, run.r, 0]}>
+          <mesh position={[0, 0.42, 0]} castShadow receiveShadow>
+            <boxGeometry args={[run.w, 0.84, 0.18]} />
+            <meshStandardMaterial
+              color={plaster}
+              roughness={0.95}
+              emissive={light ? "#000000" : "#3d303b"}
+              emissiveIntensity={light ? 0 : 0.12}
+            />
+          </mesh>
+          <mesh position={[0, 0.9, 0]} castShadow receiveShadow>
+            <boxGeometry args={[run.w + 0.28, 0.14, 0.36]} />
+            <meshStandardMaterial color={cap} roughness={0.82} metalness={0.03} />
+          </mesh>
+          {Array.from({ length: Math.ceil(run.w / 1.8) + 1 }, (_, post) => {
+            const x = -run.w / 2 + post * (run.w / Math.ceil(run.w / 1.8));
+            return (
+              <mesh key={post} position={[x, 0.48, 0.03]} castShadow receiveShadow>
+                <boxGeometry args={[0.13, 0.92, 0.26]} />
+                <meshStandardMaterial color={timber} roughness={0.86} />
+              </mesh>
+            );
+          })}
+          <mesh position={[0, 0.06, 0.04]} castShadow receiveShadow>
+            <boxGeometry args={[run.w + 0.14, 0.12, 0.28]} />
+            <meshStandardMaterial color={stone} roughness={1} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
 export default function CourtyardFrame({ theme }: { theme: "dark" | "light" }) {
   const light = theme === "light";
 
@@ -113,6 +160,7 @@ export default function CourtyardFrame({ theme }: { theme: "dark" | "light" }) {
       <EarthBerm position={[8.5, -0.5, -23.5]} scale={[13, 1.45, 4.8]} theme={theme} />
       <EarthBerm position={[0, -0.55, -27]} scale={[22, 1.75, 4.8]} theme={theme} />
       <HorizonHaze theme={theme} />
+      <BackGardenWall theme={theme} />
 
       <BambooFence position={[-9.6, 0, 3.7]} rotation={0.58} length={5.2} theme={theme} />
       <BambooFence position={[8.9, 0, 4.0]} rotation={-0.48} length={5.1} theme={theme} />
