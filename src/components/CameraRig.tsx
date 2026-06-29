@@ -3,10 +3,10 @@ import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import type { Patch } from "../content";
 
-const OVERVIEW_POS = new THREE.Vector3(-6.25, 1.36, 6.75);
-const OVERVIEW_TARGET = new THREE.Vector3(0.35, 1.32, -8.65);
-const MOBILE_OVERVIEW_POS = new THREE.Vector3(-5.55, 1.58, 11.25);
-const MOBILE_OVERVIEW_TARGET = new THREE.Vector3(-0.28, 1.55, -8.55);
+const OVERVIEW_POS = new THREE.Vector3(-6.1, 1.56, 7.55);
+const OVERVIEW_TARGET = new THREE.Vector3(1.2, 1.42, -5.65);
+const MOBILE_OVERVIEW_POS = new THREE.Vector3(-4.65, 1.48, 8.6);
+const MOBILE_OVERVIEW_TARGET = new THREE.Vector3(1.05, 1.26, -5.2);
 
 export default function CameraRig({
   controls,
@@ -28,8 +28,8 @@ export default function CameraRig({
 
   useEffect(() => {
     if (focused?.id === "house-story") {
-      desiredPos.current.set(isMobile ? -5.7 : -6.2, isMobile ? 2.0 : 2.08, isMobile ? 1.8 : -0.2);
-      desiredTarget.current.set(0.35, 1.35, -10.25);
+      desiredPos.current.set(isMobile ? -5.2 : -5.8, isMobile ? 1.75 : 1.82, isMobile ? 2.05 : -0.25);
+      desiredTarget.current.set(-0.8, 1.0, -10.1);
     } else if (focused && focused.kind === "about") {
       desiredPos.current.set(0, 3.25, 9.5);
       desiredTarget.current.set(0, 3.65, -2.2);
