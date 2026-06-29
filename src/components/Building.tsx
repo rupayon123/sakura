@@ -20,7 +20,7 @@ function GabledRoof({
   roofMap: THREE.Texture;
 }) {
   const slope = 0.24;
-  const roofEdge = color === "#5a6670" ? "#47525c" : "#252b38";
+  const roofEdge = color === "#3b4153" ? "#293143" : "#596770";
   return (
     <group position={position}>
       {[-1, 1].map((s) => (
@@ -38,7 +38,7 @@ function GabledRoof({
             roughness={0.82}
             metalness={0.04}
             emissive={color}
-            emissiveIntensity={0.04}
+            emissiveIntensity={color === "#3b4153" ? 0.08 : 0.13}
           />
         </mesh>
       ))}
@@ -171,7 +171,7 @@ export default function Building({
   const plaster = light ? "#f2ddce" : "#927785";
   const timber = light ? "#74402f" : "#4d2d3a";
   const darkTimber = light ? "#4a2e24" : "#2c202a";
-  const roof = light ? "#5a6670" : "#2f3443";
+  const roof = light ? "#6f7d84" : "#3b4153";
   const stone = light ? "#b7afa1" : "#635f6b";
 
   useEffect(() => {

@@ -33,6 +33,11 @@ interface Core {
   radius: number;
   tint: string;
 }
+interface Root {
+  a: THREE.Vector3;
+  b: THREE.Vector3;
+  r: number;
+}
 
 const PALETTE = ["#ffd2e7", "#ffc0de", "#ffe6f2", "#ffcae1", "#fff2f8", "#ffb9d9"];
 const CORE_TINT = ["#ffb0d2", "#ffc2dd", "#ffa6cc"];
@@ -85,35 +90,37 @@ function makeTaperedTube(points: THREE.Vector3[], radii: number[], radial = 30) 
   return geo;
 }
 
+function makeBlossomCardPosition(rng: () => number, pos: THREE.Vector3, size: number) {
+  const u = rng() * Math.PI * 2;
+  const v = Math.acos(2 * rng() - 1);
+  const rad = Math.pow(rng(), 0.38) * size * 1.14;
+  const canopyShell = new THREE.Vector3(
+    Math.sin(v) * Math.cos(u),
+    Math.cos(v) * 0.52 - rng() * 0.16,
+    Math.sin(v) * Math.sin(u)
+  );
+  return pos.clone().add(canopyShell.multiplyScalar(rad));
+}
+
 function buildTree(seed: number, density: number) {
   const rng = mulberry32(seed);
   const segs: Seg[] = [];
   const cards: Card[] = [];
   const cores: Core[] = [];
+  const roots: Root[] = [];
   const trunk: THREE.Vector3[] = [];
   const trunkRadii: number[] = [];
 
   const addCluster = (pos: THREE.Vector3, size: number, n: number) => {
     cores.push({
       pos: pos.clone(),
-      radius: size * 0.6,
+      radius: size * 0.42,
       tint: CORE_TINT[Math.floor(rng() * CORE_TINT.length)],
     });
     for (let i = 0; i < n; i++) {
-      const u = rng() * Math.PI * 2;
-      const v = Math.acos(2 * rng() - 1);
-      const rad = Math.pow(rng(), 0.38) * size * 1.05;
       cards.push({
-        pos: pos
-          .clone()
-          .add(
-            new THREE.Vector3(
-              Math.sin(v) * Math.cos(u),
-              Math.cos(v),
-              Math.sin(v) * Math.sin(u)
-            ).multiplyScalar(rad)
-          ),
-        scale: 0.34 + rng() * 0.36,
+        pos: makeBlossomCardPosition(rng, pos, size),
+        scale: 0.3 + rng() * 0.42,
         rot: new THREE.Euler(rng() * Math.PI, rng() * Math.PI, rng() * Math.PI),
         tint: PALETTE[Math.floor(rng() * PALETTE.length)],
       });
@@ -166,9 +173,9 @@ function buildTree(seed: number, density: number) {
   // ---- bendy S-curved trunk ----
   let tpos = new THREE.Vector3(0, 0, 0);
   let td = new THREE.Vector3(0.14, 1, 0.06).normalize();
-  const trad = 0.56;
+  const trad = 0.48;
   const trunkSteps = 7;
-  const trunkH = 4.0;
+  const trunkH = 3.35;
   for (let i = 0; i < trunkSteps; i++) {
     const seg = trunkH / trunkSteps;
     const next = tpos.clone().add(td.clone().multiplyScalar(seg));
@@ -182,8 +189,18 @@ function buildTree(seed: number, density: number) {
   trunkRadii.push(trad * 0.48);
   const crown = tpos.clone();
 
+  for (let i = 0; i < 9; i++) {
+    const a = (i / 9) * Math.PI * 2 + rng() * 0.28;
+    const len = 0.72 + rng() * 0.95;
+    roots.push({
+      a: new THREE.Vector3(Math.cos(a) * 0.2, 0.13, Math.sin(a) * 0.2),
+      b: new THREE.Vector3(Math.cos(a) * len, 0.055 + rng() * 0.025, Math.sin(a) * len),
+      r: 0.09 + rng() * 0.045,
+    });
+  }
+
   // ---- main limbs fanning out from the crown ----
-  const nMain = 12;
+  const nMain = 15;
   for (let i = 0; i < nMain; i++) {
     const a = (i / nMain) * Math.PI * 2 + rng() * 0.45;
     const tilt = 0.7 + rng() * 0.45;
@@ -201,7 +218,7 @@ function buildTree(seed: number, density: number) {
     );
   }
 
-  return { segs, trunk, trunkRadii, cards, cores };
+  return { segs, trunk, trunkRadii, cards, cores, roots };
 }
 
 export default function Tree({
@@ -219,6 +236,7 @@ export default function Tree({
 }) {
   const group = useRef<THREE.Group>(null);
   const barkRef = useRef<THREE.InstancedMesh>(null);
+  const rootRef = useRef<THREE.InstancedMesh>(null);
   const jointRef = useRef<THREE.InstancedMesh>(null);
   const coreRef = useRef<THREE.InstancedMesh>(null);
   const cardRef = useRef<THREE.InstancedMesh>(null);
@@ -226,7 +244,7 @@ export default function Tree({
 
   const tex = useMemo(makeBlossomTexture, []);
   const density = detail >= 1 ? 1 : 0.45;
-  const { segs, trunk, trunkRadii, cards, cores } = useMemo(() => buildTree(seed, density), [seed, density]);
+  const { segs, trunk, trunkRadii, cards, cores, roots } = useMemo(() => buildTree(seed, density), [seed, density]);
   const trunkGeometry = useMemo(() => makeTaperedTube(trunk, trunkRadii), [trunk, trunkRadii]);
   const joints = useMemo<Joint[]>(() => {
     const kept: Joint[] = [];
@@ -252,6 +270,16 @@ export default function Tree({
     });
     barkRef.current!.instanceMatrix.needsUpdate = true;
 
+    roots.forEach((s, i) => {
+      const d = s.b.clone().sub(s.a);
+      const len = d.length();
+      const mid = s.a.clone().add(s.b).multiplyScalar(0.5);
+      q.setFromUnitVectors(up, d.clone().normalize());
+      m.compose(mid, q, new THREE.Vector3(s.r, len, s.r * 0.72));
+      rootRef.current!.setMatrixAt(i, m);
+    });
+    rootRef.current!.instanceMatrix.needsUpdate = true;
+
     joints.forEach((j, i) => {
       m.compose(j.pos, new THREE.Quaternion(), new THREE.Vector3(j.r, j.r * 0.8, j.r));
       jointRef.current!.setMatrixAt(i, m);
@@ -259,7 +287,7 @@ export default function Tree({
     jointRef.current!.instanceMatrix.needsUpdate = true;
 
     cores.forEach((b, i) => {
-      m.compose(b.pos, new THREE.Quaternion(), new THREE.Vector3(b.radius, b.radius * 0.9, b.radius));
+      m.compose(b.pos, new THREE.Quaternion(), new THREE.Vector3(b.radius, b.radius * 0.48, b.radius));
       coreRef.current!.setMatrixAt(i, m);
       c.set(b.tint);
       coreRef.current!.setColorAt(i, c);
@@ -276,7 +304,7 @@ export default function Tree({
     });
     cardRef.current!.instanceMatrix.needsUpdate = true;
     if (cardRef.current!.instanceColor) cardRef.current!.instanceColor.needsUpdate = true;
-  }, [segs, joints, cards, cores]);
+  }, [segs, joints, cards, cores, roots]);
 
   useFrame((state) => {
     if (group.current) {
@@ -298,6 +326,16 @@ export default function Tree({
         <meshStandardMaterial color="#69432f" roughness={0.98} metalness={0.02} />
       </mesh>
 
+      <mesh position={[0.02, 0.16, 0.02]} scale={[0.72, 0.3, 0.58]} castShadow receiveShadow>
+        <sphereGeometry args={[1, 24, 14]} />
+        <meshStandardMaterial color="#5d392b" roughness={1} metalness={0.01} />
+      </mesh>
+
+      <instancedMesh ref={rootRef} args={[undefined, undefined, roots.length]} castShadow receiveShadow>
+        <cylinderGeometry args={[1, 1, 1, 18, 1]} />
+        <meshStandardMaterial color="#5d392b" roughness={1} metalness={0.01} />
+      </instancedMesh>
+
       <instancedMesh ref={barkRef} args={[undefined, undefined, segs.length]} castShadow receiveShadow>
         <cylinderGeometry args={[1, 1, 1, 36, 2]} />
         <meshStandardMaterial color="#69432f" roughness={0.98} metalness={0.02} />
@@ -309,8 +347,16 @@ export default function Tree({
       </instancedMesh>
 
       <instancedMesh ref={coreRef} args={[undefined, undefined, cores.length]} castShadow>
-        <icosahedronGeometry args={[1, 3]} />
-        <meshStandardMaterial vertexColors roughness={0.85} emissive="#ff9ec9" emissiveIntensity={0.42} />
+        <sphereGeometry args={[1, 20, 12]} />
+        <meshStandardMaterial
+          vertexColors
+          transparent
+          opacity={0.34}
+          depthWrite={false}
+          roughness={0.9}
+          emissive="#ff9ec9"
+          emissiveIntensity={0.18}
+        />
       </instancedMesh>
 
       <instancedMesh ref={cardRef} args={[undefined, undefined, cards.length]} castShadow>

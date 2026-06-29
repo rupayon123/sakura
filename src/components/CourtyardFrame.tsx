@@ -52,7 +52,7 @@ function GardenStone({ position, scale, theme }: { position: Vec3; scale: Vec3; 
   const light = theme === "light";
   return (
     <mesh position={position} scale={scale} castShadow receiveShadow>
-      <dodecahedronGeometry args={[1, 0]} />
+      <sphereGeometry args={[1, 18, 10]} />
       <meshStandardMaterial color={light ? "#b7b0a0" : "#5f5a66"} roughness={1} />
     </mesh>
   );
@@ -116,8 +116,8 @@ export default function CourtyardFrame({ theme }: { theme: "dark" | "light" }) {
       <EarthBerm position={[8.5, -0.5, -23.5]} scale={[13, 1.45, 4.8]} theme={theme} />
       <EarthBerm position={[0, -0.55, -27]} scale={[22, 1.75, 4.8]} theme={theme} />
 
-      <BambooFence position={[-7.4, 0, 5.2]} rotation={0.34} length={6.4} theme={theme} />
-      <BambooFence position={[7.5, 0, 4.9]} rotation={-0.38} length={5.8} theme={theme} />
+      <BambooFence position={[-9.6, 0, 3.7]} rotation={0.58} length={5.2} theme={theme} />
+      <BambooFence position={[8.9, 0, 4.0]} rotation={-0.48} length={5.1} theme={theme} />
       <BambooFence position={[-8.8, 0, -3.3]} rotation={Math.PI / 2} length={5.8} theme={theme} />
       <BambooFence position={[9.0, 0, -3.0]} rotation={Math.PI / 2} length={5.4} theme={theme} />
 
@@ -125,9 +125,9 @@ export default function CourtyardFrame({ theme }: { theme: "dark" | "light" }) {
       <LowGardenWall position={[6.2, 0, -3.15]} rotation={-0.08} length={5.8} theme={theme} />
       <LowGardenWall position={[-6.2, 0, -3.6]} rotation={0.1} length={4.7} theme={theme} />
 
-      <GardenStone position={[-6.5, 0.13, 1.8]} scale={[0.72, 0.18, 0.48]} theme={theme} />
-      <GardenStone position={[6.9, 0.12, 1.0]} scale={[0.62, 0.16, 0.42]} theme={theme} />
-      <GardenStone position={[5.6, 0.1, -4.2]} scale={[0.48, 0.12, 0.32]} theme={theme} />
+      <GardenStone position={[-7.15, 0.08, 1.2]} scale={[0.42, 0.08, 0.28]} theme={theme} />
+      <GardenStone position={[7.25, 0.075, 0.65]} scale={[0.36, 0.075, 0.25]} theme={theme} />
+      <GardenStone position={[5.8, 0.07, -4.45]} scale={[0.32, 0.07, 0.22]} theme={theme} />
 
       {!light && (
         <group>

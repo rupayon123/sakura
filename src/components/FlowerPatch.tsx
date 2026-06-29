@@ -22,7 +22,7 @@ const bedStyles: Record<Patch["flower"], BedStyle> = {
     ellipseZ: 0.74,
     disc: 1.04,
     floret: [0.14, 0.095],
-    leaf: [0.13, 0.1],
+    leaf: [0.1, 0.075],
     centerBias: 0.54,
     lean: 0.18,
   },
@@ -32,7 +32,7 @@ const bedStyles: Record<Patch["flower"], BedStyle> = {
     ellipseZ: 0.58,
     disc: 1.2,
     floret: [0.16, 0.09],
-    leaf: [0.18, 0.1],
+    leaf: [0.13, 0.08],
     centerBias: 0.62,
     lean: 0.14,
   },
@@ -42,7 +42,7 @@ const bedStyles: Record<Patch["flower"], BedStyle> = {
     ellipseZ: 0.68,
     disc: 1.12,
     floret: [0.11, 0.075],
-    leaf: [0.16, 0.1],
+    leaf: [0.12, 0.08],
     centerBias: 0.5,
     lean: 0.16,
   },
@@ -52,7 +52,7 @@ const bedStyles: Record<Patch["flower"], BedStyle> = {
     ellipseZ: 1.02,
     disc: 1.08,
     floret: [0.1, 0.068],
-    leaf: [0.15, 0.09],
+    leaf: [0.11, 0.07],
     centerBias: 0.46,
     lean: 0.22,
   },
@@ -62,7 +62,7 @@ const bedStyles: Record<Patch["flower"], BedStyle> = {
     ellipseZ: 0.76,
     disc: 1.1,
     floret: [0.17, 0.095],
-    leaf: [0.14, 0.1],
+    leaf: [0.1, 0.075],
     centerBias: 0.56,
     lean: 0.2,
   },
@@ -177,14 +177,16 @@ export default function FlowerPatch({
         : active || hovered
         ? 0.34
         : 0.1
+      : dimmed
+      ? 0.05
       : active || hovered
-      ? 0.14
-      : 0.0;
+      ? 0.22
+      : 0.12;
     if (floretMat.current) floretMat.current.emissiveIntensity = glow;
   });
 
-  const leafColor = dark ? "#3f6545" : "#688a58";
-  const soilColor = dark ? "#2d2530" : "#6c5543";
+  const leafColor = dark ? "#456f4b" : "#90aa69";
+  const soilColor = dark ? "#2d2530" : "#7a654d";
   const discOpacity = dark
     ? dimmed
       ? 0.035
@@ -226,7 +228,7 @@ export default function FlowerPatch({
             side={THREE.DoubleSide}
             roughness={0.9}
             transparent
-            opacity={dark ? 0.42 : 0.5}
+            opacity={dark ? 0.24 : 0.1}
             depthWrite={false}
           />
         </instancedMesh>

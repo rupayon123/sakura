@@ -13,6 +13,55 @@ function rng(seed: number) {
   };
 }
 
+function makeTerrainGeometry(radius = 42, segments = 96) {
+  const positions: number[] = [];
+  const uvs: number[] = [];
+  const indices: number[] = [];
+  const index = (x: number, z: number) => z * (segments + 1) + x;
+
+  for (let iz = 0; iz <= segments; iz++) {
+    const z = -radius + (iz / segments) * radius * 2;
+    for (let ix = 0; ix <= segments; ix++) {
+      const x = -radius + (ix / segments) * radius * 2;
+      const dist = Math.hypot(x, z);
+      const edgeRise = Math.pow(Math.max(0, (dist - 23) / 19), 2) * 0.22;
+      const houseSettle = -Math.exp(-((x * x) / 38 + ((z + 8.6) * (z + 8.6)) / 13)) * 0.035;
+      const pathSettle = -Math.exp(-(((x + 1.0) * (x + 1.0)) / 3.8 + ((z - 0.3) * (z - 0.3)) / 72)) * 0.025;
+      const ripple = Math.sin(x * 0.23 + z * 0.16) * 0.035 + Math.sin(x * 0.51 - z * 0.21) * 0.018;
+      const y = dist > radius ? -0.16 : ripple + edgeRise + houseSettle + pathSettle;
+      positions.push(x, y, z);
+      uvs.push((x / radius + 1) * 0.5, (z / radius + 1) * 0.5);
+    }
+  }
+
+  for (let iz = 0; iz < segments; iz++) {
+    for (let ix = 0; ix < segments; ix++) {
+      const cx = -radius + ((ix + 0.5) / segments) * radius * 2;
+      const cz = -radius + ((iz + 0.5) / segments) * radius * 2;
+      if (Math.hypot(cx, cz) > radius) continue;
+      const a = index(ix, iz);
+      const b = index(ix + 1, iz);
+      const c = index(ix, iz + 1);
+      const d = index(ix + 1, iz + 1);
+      indices.push(a, c, b, b, c, d);
+    }
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(positions), 3));
+  geo.setAttribute("uv", new THREE.BufferAttribute(new Float32Array(uvs), 2));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  return geo;
+}
+
+function mainPathPoint(t: number) {
+  return {
+    x: -2.15 + t * 2.85 + Math.sin(t * Math.PI) * 0.82,
+    z: 6.8 - t * 13.1,
+  };
+}
+
 /**
  * The garden floor: a grass field with a stone path and a scatter of fallen
  * cherry-blossom petals — the courtyard ground.
@@ -26,6 +75,7 @@ export default function GardenGround({
 }) {
   const light = theme === "light";
   const grass = useMemo(makeGrassTexture, []);
+  const terrain = useMemo(() => makeTerrainGeometry(), []);
   const stone = useMemo(makeStoneTexture, []);
   const petalTex = useMemo(makePetalTexture, []);
   const fallen = useRef<THREE.InstancedMesh>(null);
@@ -38,11 +88,32 @@ export default function GardenGround({
   const petals = useMemo(() => {
     const r = rng(4242);
     return Array.from({ length: petalCount }, () => {
-      const a = r() * Math.PI * 2;
-      const rad = Math.sqrt(r()) * 22;
+      const mode = r();
+      let x = 0;
+      let z = 0;
+      if (mode < 0.42) {
+        const a = r() * Math.PI * 2;
+        const rad = Math.sqrt(r()) * 5.9;
+        x = 4.7 + Math.cos(a) * rad;
+        z = 0.2 + Math.sin(a) * rad * 0.68;
+      } else if (mode < 0.68) {
+        const t = r();
+        const p = mainPathPoint(t);
+        const side = r() > 0.5 ? 1 : -1;
+        x = p.x + side * (0.25 + r() * 0.86);
+        z = p.z + (r() - 0.5) * 0.55;
+      } else if (mode < 0.8) {
+        x = 2.6 + (r() - 0.5) * 3.5;
+        z = -6.1 + (r() - 0.5) * 1.9;
+      } else {
+        const a = r() * Math.PI * 2;
+        const rad = Math.sqrt(r()) * 22;
+        x = Math.cos(a) * rad;
+        z = Math.sin(a) * rad;
+      }
       return {
-        x: Math.cos(a) * rad,
-        z: Math.sin(a) * rad,
+        x,
+        z,
         rot: r() * Math.PI * 2,
         s: 0.12 + r() * 0.12,
       };
@@ -52,16 +123,16 @@ export default function GardenGround({
   // smaller side stepping stones; the main path to the house stays open.
   const path = useMemo(() => {
     const r = rng(88);
-    const N = 12;
+    const N = 5;
     return Array.from({ length: N }, (_, i) => {
       const t = i / (N - 1);
-      const x = 6.6 + Math.sin(t * Math.PI * 1.2) * 1.35;
-      const z = 7.8 - t * 11.8;
+      const x = 6.45 + Math.sin(t * Math.PI * 1.2) * 0.62;
+      const z = 1.55 - t * 4.7;
       return {
         x: x + (r() - 0.5) * 0.28,
         z: z + (r() - 0.5) * 0.28,
         rot: r() * Math.PI,
-        s: 0.34 + r() * 0.18,
+        s: 0.16 + r() * 0.08,
       };
     });
   }, []);
@@ -75,14 +146,13 @@ export default function GardenGround({
     const segments: { x: number; z: number; rot: number; sx: number; sz: number; color: string }[] = [];
     for (let i = 0; i < 24; i++) {
       const t = i / 23;
-      const x = -1.08 + Math.sin(t * Math.PI * 1.08) * 1.18;
-      const z = 8.75 - t * 15.75;
+      const p = mainPathPoint(t);
       segments.push({
-        x: x + (r() - 0.5) * 0.16,
-        z: z + (r() - 0.5) * 0.16,
+        x: p.x + (r() - 0.5) * 0.18,
+        z: p.z + (r() - 0.5) * 0.16,
         rot: (r() - 0.5) * 0.62,
-        sx: 0.82 + Math.sin(t * Math.PI) * 0.28 + r() * 0.14,
-        sz: 0.3 + r() * 0.1,
+        sx: 0.88 + Math.sin(t * Math.PI) * 0.42 + r() * 0.18,
+        sz: 0.32 + r() * 0.12,
         color: colors[Math.floor(r() * colors.length)],
       });
     }
@@ -99,8 +169,9 @@ export default function GardenGround({
     for (let i = 0; i < 78; i++) {
       const t = r();
       const side = r() > 0.5 ? 1 : -1;
-      const x = -1.08 + Math.sin(t * Math.PI * 1.08) * 1.18 + side * (0.48 + r() * 0.72);
-      const z = 8.75 - t * 15.75 + (r() - 0.5) * 0.5;
+      const p = mainPathPoint(t);
+      const x = p.x + side * (0.5 + r() * 0.82);
+      const z = p.z + (r() - 0.5) * 0.54;
       pebbles.push({
         x,
         z,
@@ -156,22 +227,21 @@ export default function GardenGround({
   const plaza = useMemo(() => {
     const r = rng(1288);
     const colors = light
-      ? ["#cfc8ba", "#e0d6c4", "#bfb7aa", "#d8cfbe", "#b2aa9d"]
-      : ["#98939d", "#a8a1aa", "#898491", "#b0a6a9", "#96909d"];
+      ? ["#ded3bf", "#eadfca", "#d3c7af", "#e2d4bb", "#c8bba4"]
+      : ["#9b939e", "#aaa1ab", "#8a8491", "#b3a8ad", "#96909d"];
     const tiles: { x: number; z: number; rot: number; sx: number; sz: number; color: string }[] = [];
-    for (let i = 0; i < 18; i++) {
-      const t = i / 17;
-      const centerX = -1.1 + Math.sin(t * Math.PI * 1.08) * 1.25;
-      const z = 8.7 - t * 15.7;
-      const halfWidth = 0.78 + Math.sin(t * Math.PI) * 0.42;
-      const lanes = r() > 0.68 ? [0, r() > 0.5 ? -1 : 1] : [0];
+    for (let i = 0; i < 21; i++) {
+      const t = i / 20;
+      const p = mainPathPoint(t);
+      const halfWidth = 0.52 + Math.sin(t * Math.PI) * 0.22;
+      const lanes = t > 0.78 && r() > 0.72 ? [0, r() > 0.5 ? -1 : 1] : [0];
       for (const lane of lanes) {
         tiles.push({
-          x: centerX + lane * halfWidth + (r() - 0.5) * 0.16,
-          z: z + (r() - 0.5) * 0.18,
+          x: p.x + lane * halfWidth + (r() - 0.5) * 0.16,
+          z: p.z + (r() - 0.5) * 0.18,
           rot: (r() - 0.5) * 0.34,
-          sx: 0.38 + r() * 0.16,
-          sz: 0.3 + r() * 0.12,
+          sx: 0.34 + r() * 0.14,
+          sz: 0.26 + r() * 0.1,
           color: colors[Math.floor(r() * colors.length)],
         });
       }
@@ -186,6 +256,21 @@ export default function GardenGround({
         color: colors[Math.floor(r() * colors.length)],
       });
     }
+    [
+      { x: 1.25, z: -6.24, sx: 0.48, sz: 0.34 },
+      { x: 1.96, z: -6.18, sx: 0.54, sz: 0.36 },
+      { x: 2.7, z: -6.12, sx: 0.5, sz: 0.34 },
+      { x: 3.42, z: -6.04, sx: 0.58, sz: 0.36 },
+    ].forEach((tile, i) => {
+      tiles.push({
+        x: tile.x + (r() - 0.5) * 0.06,
+        z: tile.z + (r() - 0.5) * 0.08,
+        rot: (r() - 0.5) * 0.24 + (i % 2 ? 0.08 : -0.06),
+        sx: tile.sx + r() * 0.08,
+        sz: tile.sz + r() * 0.08,
+        color: colors[Math.floor(r() * colors.length)],
+      });
+    });
     return tiles;
   }, [light]);
 
@@ -298,8 +383,8 @@ export default function GardenGround({
   return (
     <group>
       {/* grass field */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-        <circleGeometry args={[42, 72]} />
+      <mesh position={[0, 0, 0]} receiveShadow>
+        <primitive object={terrain} attach="geometry" />
         <meshStandardMaterial
           map={grass}
           color={light ? "#adc877" : "#74836f"}
@@ -354,11 +439,11 @@ export default function GardenGround({
         <meshStandardMaterial
           vertexColors
           map={stone}
-          color={light ? "#eee5d4" : "#d0c6ce"}
+          color={light ? "#f2e6d1" : "#c8bcc6"}
           roughness={0.94}
           metalness={0.02}
-          emissive={light ? "#d5c4aa" : "#70667a"}
-          emissiveIntensity={light ? 0.28 : 0.46}
+          emissive={light ? "#d6c2a3" : "#75697c"}
+          emissiveIntensity={light ? 0.28 : 0.4}
         />
       </instancedMesh>
 
@@ -387,7 +472,7 @@ export default function GardenGround({
       {/* stone stepping path */}
       <instancedMesh ref={pathRef} args={[undefined, undefined, path.length]} receiveShadow>
         <dodecahedronGeometry args={[1, 0]} />
-        <meshStandardMaterial color={light ? "#b8b1a2" : "#766f69"} roughness={1} />
+        <meshStandardMaterial color={light ? "#b8ad99" : "#6b646c"} roughness={1} />
       </instancedMesh>
 
       {/* fallen petals */}

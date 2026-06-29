@@ -69,7 +69,7 @@ export default function PlantingBeds({
         z,
         y: 0.052 + rng() * 0.025,
         flowerS: 0.115 + rng() * 0.095,
-        leafS: 0.15 + rng() * 0.13,
+        leafS: 0.12 + rng() * 0.08,
         rot: rng() * Math.PI * 2,
         tilt: (rng() - 0.5) * 0.22,
         color: palette[Math.floor(rng() * palette.length)],
@@ -92,7 +92,7 @@ export default function PlantingBeds({
         new THREE.Vector3(bed.rx, bed.rz, 1)
       );
       bedBase.current!.setMatrixAt(i, m);
-      c.set(theme === "dark" ? (i % 2 ? "#28382e" : "#332c34") : i % 2 ? "#5e6d3e" : "#65513e");
+      c.set(theme === "dark" ? (i % 2 ? "#28382e" : "#332c34") : i % 2 ? "#788852" : "#7b6a4a");
       bedBase.current!.setColorAt(i, c);
     });
     bedBase.current!.instanceMatrix.needsUpdate = true;
@@ -118,7 +118,7 @@ export default function PlantingBeds({
 
   useFrame((state) => {
     if (flowerMat.current) {
-      const base = theme === "dark" ? 0.08 : 0.018;
+      const base = theme === "dark" ? 0.08 : 0.09;
       flowerMat.current.emissiveIntensity = play
         ? base + Math.sin(state.clock.elapsedTime * 0.45) * 0.022
         : base;
@@ -144,7 +144,7 @@ export default function PlantingBeds({
           roughness={0.92}
           side={THREE.DoubleSide}
           transparent
-          opacity={theme === "dark" ? 0.42 : 0.48}
+          opacity={theme === "dark" ? 0.24 : 0.12}
           depthWrite={false}
         />
       </instancedMesh>
@@ -159,8 +159,8 @@ export default function PlantingBeds({
           alphaTest={0.4}
           roughness={0.7}
           metalness={0.0}
-          emissive={theme === "dark" ? "#ff7eb6" : "#000000"}
-          emissiveIntensity={0.02}
+          emissive={theme === "dark" ? "#ff7eb6" : "#ff9fc4"}
+          emissiveIntensity={0.08}
           depthWrite={false}
           toneMapped
         />
