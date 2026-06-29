@@ -1,52 +1,73 @@
-# 桜 Sakura — a garden grown from a promise
+# Sakura Garden - Rupayon Haldar
 
-### ▶ Live site: **https://rupayon123.github.io/sakura/**
+Live site: https://rupayon123.github.io/sakura/
 
-A personal website built around a single memory: my grandmother told me that when
-I get married, I would get a cherry blossom tree. This site _is_ that tree.
+An interactive WebGL personal website built as a stylized sakura garden around a
+family promise. The scene is centered on exactly one giant sakura tree, a small
+grounded Japanese home with the sign 「栗原の家」, and garden beds that connect
+Rupayon's projects, roots, and personal story.
 
-At the center is a glowing 3D sakura tree you can orbit and zoom. The whole garden
-sits on a field of **tulips** — they run deep in our family — and nestled in that
-field are **flower beds for my projects**, each one pulled live from my GitHub.
-Click a bed and the camera flies in to tell its story.
+The target feeling is cinematic, warm, and alive: an open Japanese garden with
+fallen petals, stone paths, planted beds, lanterns, and a modest grandmother-like
+house. It is not a static wallpaper, a palace, a fantasy shrine, or a toy
+diorama.
 
-- **Tree** — procedural, neon, always shedding petals
-- **Tulip field** — the family foundation everything grows from
-- **Project beds** — generated from my public GitHub repos
-- **Aesthetic** — dark, techno-clean Japanese neon (bloom glow + neon grid)
+## Experience
+
+- One giant interactive sakura tree with falling petals and subtle motion
+- A grounded local Japanese house that opens the family and grandmother story
+- GitHub project beds placed as low garden markers around the scene
+- About content that ties Rupayon, LinkedIn, GitHub, family, and roots together
+- Light mode for warm daylight and dark mode for a moonlit garden
+- Orbit controls, motion toggle, theme toggle, project panels, and house story
 
 ## Tech
 
-[Vite](https://vite.dev) · [React](https://react.dev) · a [Sketchfab](https://sketchfab.com)
-embed for the 3D sakura tree, with a canvas petal layer and floating UI on top.
+Vite, React, TypeScript, Three.js, React Three Fiber, Drei, and postprocessing.
+The garden is rendered in WebGL with procedural meshes, generated textures, and
+local content data.
 
-Tree model: "Ancient Sakura/Cherry Blossom Tree" by **v_petkov** on Sketchfab.
+## Content
 
-## Editing the content
+Personal story and project presentation live in `src/content.ts`.
 
-Everything personal lives in two places:
+Project data is baked from public GitHub repositories. To change which repos
+appear, edit the `CURATED` list in `scripts/fetch-projects.mjs`, then run:
 
-- **`src/content.ts`** — the grandmother's quote, the family (tulip) beds, and how
-  each project is styled (flower type, color, position).
-- **Project data is baked from GitHub.** To change which repos appear, edit the
-  `CURATED` list in `scripts/fetch-projects.mjs` and re-run it:
+```bash
+node scripts/fetch-projects.mjs
+```
 
-  ```bash
-  node scripts/fetch-projects.mjs   # rewrites src/projects.json
-  ```
+Only curated public repositories are included because the site is public.
 
-  Only the repos you list are included — private repos are intentionally excluded,
-  since this site is public.
+## Verification
 
-## Deploy
+The production build runs a garden-brief verifier before compiling:
 
-Pushing to `main` builds and publishes automatically via GitHub Actions
-(`.github/workflows/deploy.yml`) to **GitHub Pages** — live at
-**https://rupayon123.github.io/sakura/**.
+```bash
+npm run verify:garden
+npm run build
+```
 
-## Run locally
+The verifier protects the current direction by checking that:
+
+- exactly one sakura tree is rendered
+- extra bush/tree components stay disabled
+- old starter/demo project names do not return
+- family content stays on the house instead of the top nav
+- 「栗原の家」 remains in both story content and the house texture
+- the house remains clickable
+- runtime source stays free of console/debug leftovers
+
+## Run Locally
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173
+npm run dev
 ```
+
+Local development serves the site at http://localhost:5173/.
+
+## Deploy
+
+Pushing to `main` builds and publishes through GitHub Actions to GitHub Pages.

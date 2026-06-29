@@ -22,6 +22,7 @@ export interface Patch {
   body: string;
   meta?: string; // small line under the title (e.g. languages)
   links?: { label: string; href: string }[];
+  actions?: { label: string; targetId: string }[];
   kind: "project" | "family" | "about";
 }
 
@@ -53,12 +54,13 @@ export const aboutPatch: Patch = {
   radius: 4.9,
   kind: "about",
   title: "Rupayon Haldar",
-  meta: "Builder of tools that open doors",
-  body: "I'm a developer in the Greater Toronto Area building tools around youth STEM access, civic tech, education, and opportunity. This website ties that work back to something personal: my grandmother's sakura promise, my family roots, and the idea that the things I build should help people find a path forward. The garden is a living portfolio: the project beds are GitHub work, the house carries the family story, and the one giant sakura is the promise everything grows around.",
+  meta: "Developer in the Greater Toronto Area",
+  body: "I'm Rupayon, a developer building tools around youth STEM access, civic tech, education, and opportunity. This site ties the work back to me instead of treating it like a plain project list: each garden bed points to public GitHub work, the small house holds the family and grandmother story, and the one giant sakura is the promise everything grows from.",
   links: [
     { label: "LinkedIn", href: "https://www.linkedin.com/in/rupayonhaldar/" },
     { label: "GitHub", href: "https://github.com/rupayon123" },
   ],
+  actions: [{ label: "Open 「栗原の家」", targetId: "house-story" }],
 };
 
 /* ----------------------------------------------------------------------------
@@ -74,8 +76,8 @@ export const houseStoryPatch: Patch = {
   radius: 10.7,
   kind: "family",
   title: "栗原の家",
-  meta: "grandmother, family, roots",
-  body: "The house carries the family part of the site. It is a small memory of a real grandmother's home, marked with 「栗原の家」, and it gives the garden its roots. Her sakura promise is the reason the tree stands here: when a new life begins, the sakura she plants grows with it.",
+  meta: "grandmother, roots, and the sakura promise",
+  body: "This house is the quiet family corner of the site: a small memory of a real grandmother's home, marked with 「栗原の家」. It gives the garden its roots. Her sakura promise is why the tree stands here: when a new life begins, the sakura she plants grows with it.",
 };
 
 /* ----------------------------------------------------------------------------

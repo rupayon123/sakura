@@ -10,8 +10,10 @@ export default function Nav({
   const btn = (id: string, label: string) => (
     <button
       key={id}
+      type="button"
       className={`nav__btn ${focused === id ? "nav__btn--active" : ""}`}
       onClick={() => setFocused(focused === id ? null : id)}
+      aria-pressed={focused === id}
     >
       {label}
     </button>
@@ -20,6 +22,7 @@ export default function Nav({
   return (
     <nav className="nav">
       <button
+        type="button"
         className="nav__brand"
         onClick={() => setFocused(null)}
         title={site.title}

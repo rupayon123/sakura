@@ -27,7 +27,10 @@ export default function CameraRig({
   const animating = useRef(true);
 
   useEffect(() => {
-    if (focused && focused.kind === "about") {
+    if (focused?.id === "house-story") {
+      desiredPos.current.set(isMobile ? -5.7 : -6.2, isMobile ? 2.0 : 2.08, isMobile ? 1.8 : -0.2);
+      desiredTarget.current.set(0.35, 1.35, -10.25);
+    } else if (focused && focused.kind === "about") {
       desiredPos.current.set(0, 3.25, 9.5);
       desiredTarget.current.set(0, 3.65, -2.2);
     } else if (focused) {

@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "verify:garden": "node scripts/verify-garden.mjs",
+    "build": "node scripts/verify-garden.mjs && tsc -b && vite build",
     "preview": "vite preview"
   },
   "dependencies": {

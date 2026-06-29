@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { makeFloretTexture } from "../textures";
@@ -96,6 +96,7 @@ export default function FlowerPatch({
   const floretRef = useRef<THREE.InstancedMesh>(null);
   const leafRef = useRef<THREE.InstancedMesh>(null);
   const floretMat = useRef<THREE.MeshStandardMaterial>(null);
+  const targetScale = useMemo(() => new THREE.Vector3(1, 1, 1), []);
   const [hovered, setHovered] = useState(false);
 
   const dark = theme === "dark";
@@ -132,6 +133,12 @@ export default function FlowerPatch({
     });
   }, [patch.angle, patch.flower, N, isFamily, isAbout, style]);
 
+  useEffect(() => {
+    return () => {
+      if (hovered) document.body.style.cursor = "auto";
+    };
+  }, [hovered]);
+
   useLayoutEffect(() => {
     const m = new THREE.Matrix4();
     const q = new THREE.Quaternion();
@@ -159,7 +166,8 @@ export default function FlowerPatch({
   useFrame((state) => {
     if (group.current) {
       const target = active ? 1.14 : hovered ? 1.06 : 1;
-      group.current.scale.lerp(new THREE.Vector3(target, target, target), 0.1);
+      targetScale.set(target, target, target);
+      group.current.scale.lerp(targetScale, 0.1);
       group.current.position.y = active ? 0.045 + Math.sin(state.clock.elapsedTime * 2) * 0.015 : 0;
     }
 

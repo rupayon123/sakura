@@ -35,17 +35,17 @@ export default function Scene({ focused, setFocused, entered, motion, isMobile, 
 
   useEffect(() => {
     gl.toneMapping = THREE.ACESFilmicToneMapping;
-    gl.toneMappingExposure = light ? 1.5 : 1.16;
+    gl.toneMappingExposure = light ? 1.5 : 1.48;
   }, [gl, light]);
 
   const petalCount = isMobile ? 480 : 1300;
-  const plantingCount = isMobile ? 80 : 150;
-  const fogColor = light ? "#f9dcc8" : "#181120";
+  const plantingCount = isMobile ? 130 : 300;
+  const fogColor = light ? "#f9dcc8" : "#2a1c31";
 
   return (
     <>
-      {!light && <color attach="background" args={["#07060d"]} />}
-      <fog attach="fog" args={[fogColor, light ? 34 : 18, light ? 135 : 92]} />
+      {!light && <color attach="background" args={["#11142a"]} />}
+      <fog attach="fog" args={[fogColor, light ? 34 : 26, light ? 135 : 116]} />
 
       {/* ---- DAY: art-directed clear sky ---- */}
       {light && (
@@ -57,7 +57,7 @@ export default function Scene({ focused, setFocused, entered, motion, isMobile, 
           </Clouds>
         </>
       )}
-      {!light && <SkyDome top="#06091b" bottom="#2f1831" />}
+      {!light && <SkyDome top="#10183a" bottom="#472844" />}
 
       {/* ---- Lighting ---- */}
       {light ? (
@@ -83,25 +83,27 @@ export default function Scene({ focused, setFocused, entered, motion, isMobile, 
         </>
       ) : (
         <>
-          <hemisphereLight args={["#b8c8ff", "#321528", 0.52]} />
-          <ambientLight intensity={0.56} color="#746086" />
+          <hemisphereLight args={["#d8e5ff", "#5a3947", 0.94]} />
+          <ambientLight intensity={0.86} color="#ab96ba" />
           <directionalLight
-            position={[-9, 14, 4]}
-            intensity={1.8}
-            color="#a9caff"
+            position={[-10, 17, 7]}
+            intensity={3.15}
+            color="#bed1ff"
             castShadow
             shadow-mapSize={[2048, 2048]}
             shadow-camera-near={1}
-            shadow-camera-far={44}
-            shadow-camera-left={-16}
-            shadow-camera-right={16}
-            shadow-camera-top={16}
-            shadow-camera-bottom={-16}
+            shadow-camera-far={60}
+            shadow-camera-left={-22}
+            shadow-camera-right={22}
+            shadow-camera-top={22}
+            shadow-camera-bottom={-22}
             shadow-bias={-0.0004}
           />
-          <pointLight position={[0, 3.4, -3]} intensity={6} color="#f4a8c8" distance={18} />
-          <pointLight position={[-7, 2.4, -7]} intensity={5.5} color="#9db8ff" distance={28} />
-          <pointLight position={[4.5, 2.2, 3.5]} intensity={5} color="#ffce8a" distance={16} />
+          <pointLight position={[0, 3.6, -3]} intensity={7.2} color="#f4a8c8" distance={20} />
+          <pointLight position={[-7, 2.7, -7]} intensity={6.4} color="#9db8ff" distance={30} />
+          <pointLight position={[4.5, 2.35, 3.5]} intensity={5.8} color="#ffce8a" distance={18} />
+          <pointLight position={[-2.2, 3.1, -9.2]} intensity={6.8} color="#ffd09a" distance={16} />
+          <pointLight position={[2.4, 4.8, -4.0]} intensity={3.2} color="#cab8ff" distance={22} />
         </>
       )}
 
@@ -136,7 +138,7 @@ export default function Scene({ focused, setFocused, entered, motion, isMobile, 
       <Building
         position={[0, 0, -10.7]}
         rotation={0}
-        scale={1.0}
+        scale={0.9}
         theme={theme}
         onClick={() => setFocused(focused === houseStoryPatch.id ? null : houseStoryPatch.id)}
       />
@@ -147,8 +149,8 @@ export default function Scene({ focused, setFocused, entered, motion, isMobile, 
         resolution={isMobile ? 512 : 1024}
         far={8}
         blur={3}
-        opacity={light ? 0.28 : 0.4}
-        color={light ? "#4a3a2a" : "#000000"}
+        opacity={light ? 0.28 : 0.26}
+        color={light ? "#4a3a2a" : "#18101b"}
       />
 
       {!light && (
@@ -181,7 +183,7 @@ export default function Scene({ focused, setFocused, entered, motion, isMobile, 
           luminanceSmoothing={0.85}
           mipmapBlur
         />
-        <Vignette eskil={false} offset={0.28} darkness={light ? 0.18 : 0.55} />
+        <Vignette eskil={false} offset={0.24} darkness={light ? 0.18 : 0.24} />
       </EffectComposer>
     </>
   );

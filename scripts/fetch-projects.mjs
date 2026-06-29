@@ -16,7 +16,6 @@ const CURATED = [
   "gta-free-stem-ios",
   "arduino-blocks-lab",
   "PipHackLup",
-  "my-app",
   "all-in-one-resume-builder-job-assist-applier",
 ];
 

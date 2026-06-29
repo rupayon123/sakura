@@ -8,7 +8,7 @@ export default function Intro({
   onEnter: () => void;
 }) {
   return (
-    <div className={`intro ${entered ? "intro--hidden" : ""}`}>
+    <div className={`intro ${entered ? "intro--hidden" : ""}`} aria-hidden={entered}>
       <div className="intro__brand">
         {site.kanji} {site.title}
       </div>
@@ -20,7 +20,7 @@ export default function Intro({
         {grandmotherQuote.attributionJa} · {grandmotherQuote.attribution}
       </p>
 
-      <button className="intro__enter" onClick={onEnter}>
+      <button type="button" className="intro__enter" onClick={onEnter} tabIndex={entered ? -1 : 0}>
         {site.enterJa} · {site.enter}
       </button>
 

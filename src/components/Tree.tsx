@@ -18,6 +18,10 @@ interface Seg {
   b: THREE.Vector3;
   r: number;
 }
+interface Joint {
+  pos: THREE.Vector3;
+  r: number;
+}
 interface Card {
   pos: THREE.Vector3;
   scale: number;
@@ -33,11 +37,61 @@ interface Core {
 const PALETTE = ["#ffd2e7", "#ffc0de", "#ffe6f2", "#ffcae1", "#fff2f8", "#ffb9d9"];
 const CORE_TINT = ["#ffb0d2", "#ffc2dd", "#ffa6cc"];
 
+function makeTaperedTube(points: THREE.Vector3[], radii: number[], radial = 30) {
+  const positions: number[] = [];
+  const indices: number[] = [];
+  const up = new THREE.Vector3(0, 1, 0);
+  const q = new THREE.Quaternion();
+
+  points.forEach((p, i) => {
+    const prev = points[Math.max(0, i - 1)];
+    const next = points[Math.min(points.length - 1, i + 1)];
+    const tangent = next.clone().sub(prev).normalize();
+    q.setFromUnitVectors(up, tangent);
+
+    for (let j = 0; j < radial; j++) {
+      const a = (j / radial) * Math.PI * 2;
+      const normal = new THREE.Vector3(Math.cos(a), 0, Math.sin(a)).applyQuaternion(q);
+      const wobble = 1 + Math.sin(i * 1.7 + j * 1.9) * 0.028 + Math.sin(j * 3.1 + i * 0.8) * 0.018;
+      const r = radii[i] * wobble;
+      positions.push(p.x + normal.x * r, p.y + normal.y * r, p.z + normal.z * r);
+    }
+  });
+
+  for (let i = 0; i < points.length - 1; i++) {
+    for (let j = 0; j < radial; j++) {
+      const a = i * radial + j;
+      const b = i * radial + ((j + 1) % radial);
+      const c = (i + 1) * radial + j;
+      const d = (i + 1) * radial + ((j + 1) % radial);
+      indices.push(a, c, b, b, c, d);
+    }
+  }
+
+  const startCenter = positions.length / 3;
+  positions.push(points[0].x, points[0].y, points[0].z);
+  for (let j = 0; j < radial; j++) indices.push(startCenter, (j + 1) % radial, j);
+
+  const endCenter = positions.length / 3;
+  const lastRing = (points.length - 1) * radial;
+  const last = points[points.length - 1];
+  positions.push(last.x, last.y, last.z);
+  for (let j = 0; j < radial; j++) indices.push(endCenter, lastRing + j, lastRing + ((j + 1) % radial));
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(positions), 3));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  return geo;
+}
+
 function buildTree(seed: number, density: number) {
   const rng = mulberry32(seed);
   const segs: Seg[] = [];
   const cards: Card[] = [];
   const cores: Core[] = [];
+  const trunk: THREE.Vector3[] = [];
+  const trunkRadii: number[] = [];
 
   const addCluster = (pos: THREE.Vector3, size: number, n: number) => {
     cores.push({
@@ -118,11 +172,14 @@ function buildTree(seed: number, density: number) {
   for (let i = 0; i < trunkSteps; i++) {
     const seg = trunkH / trunkSteps;
     const next = tpos.clone().add(td.clone().multiplyScalar(seg));
-    segs.push({ a: tpos.clone(), b: next.clone(), r: trad * (1 - (i / trunkSteps) * 0.5) });
+    trunk.push(tpos.clone());
+    trunkRadii.push(trad * (1 - (i / trunkSteps) * 0.5));
     td.add(new THREE.Vector3(Math.sin(i * 1.4) * 0.18, 0.04, Math.cos(i * 0.9) * 0.13));
     td.normalize();
     tpos = next;
   }
+  trunk.push(tpos.clone());
+  trunkRadii.push(trad * 0.48);
   const crown = tpos.clone();
 
   // ---- main limbs fanning out from the crown ----
@@ -144,7 +201,7 @@ function buildTree(seed: number, density: number) {
     );
   }
 
-  return { segs, cards, cores };
+  return { segs, trunk, trunkRadii, cards, cores };
 }
 
 export default function Tree({
@@ -162,13 +219,22 @@ export default function Tree({
 }) {
   const group = useRef<THREE.Group>(null);
   const barkRef = useRef<THREE.InstancedMesh>(null);
+  const jointRef = useRef<THREE.InstancedMesh>(null);
   const coreRef = useRef<THREE.InstancedMesh>(null);
   const cardRef = useRef<THREE.InstancedMesh>(null);
   const cardMat = useRef<THREE.MeshStandardMaterial>(null);
 
   const tex = useMemo(makeBlossomTexture, []);
   const density = detail >= 1 ? 1 : 0.45;
-  const { segs, cards, cores } = useMemo(() => buildTree(seed, density), [seed, density]);
+  const { segs, trunk, trunkRadii, cards, cores } = useMemo(() => buildTree(seed, density), [seed, density]);
+  const trunkGeometry = useMemo(() => makeTaperedTube(trunk, trunkRadii), [trunk, trunkRadii]);
+  const joints = useMemo<Joint[]>(() => {
+    const kept: Joint[] = [];
+    segs.forEach((s, i) => {
+      if (s.r > 0.2) kept.push({ pos: s.a.clone(), r: s.r * 0.92 });
+    });
+    return kept;
+  }, [segs]);
 
   useLayoutEffect(() => {
     const up = new THREE.Vector3(0, 1, 0);
@@ -185,6 +251,12 @@ export default function Tree({
       barkRef.current!.setMatrixAt(i, m);
     });
     barkRef.current!.instanceMatrix.needsUpdate = true;
+
+    joints.forEach((j, i) => {
+      m.compose(j.pos, new THREE.Quaternion(), new THREE.Vector3(j.r, j.r * 0.8, j.r));
+      jointRef.current!.setMatrixAt(i, m);
+    });
+    jointRef.current!.instanceMatrix.needsUpdate = true;
 
     cores.forEach((b, i) => {
       m.compose(b.pos, new THREE.Quaternion(), new THREE.Vector3(b.radius, b.radius * 0.9, b.radius));
@@ -204,7 +276,7 @@ export default function Tree({
     });
     cardRef.current!.instanceMatrix.needsUpdate = true;
     if (cardRef.current!.instanceColor) cardRef.current!.instanceColor.needsUpdate = true;
-  }, [segs, cards, cores]);
+  }, [segs, joints, cards, cores]);
 
   useFrame((state) => {
     if (group.current) {
@@ -221,9 +293,19 @@ export default function Tree({
 
   return (
     <group ref={group} position={position} scale={scale}>
+      <mesh castShadow receiveShadow>
+        <primitive object={trunkGeometry} attach="geometry" />
+        <meshStandardMaterial color="#69432f" roughness={0.98} metalness={0.02} />
+      </mesh>
+
       <instancedMesh ref={barkRef} args={[undefined, undefined, segs.length]} castShadow receiveShadow>
-        <cylinderGeometry args={[1, 1, 1, 30, 2]} />
-        <meshStandardMaterial color="#6a4633" roughness={0.98} metalness={0.02} />
+        <cylinderGeometry args={[1, 1, 1, 36, 2]} />
+        <meshStandardMaterial color="#69432f" roughness={0.98} metalness={0.02} />
+      </instancedMesh>
+
+      <instancedMesh ref={jointRef} args={[undefined, undefined, joints.length]} castShadow receiveShadow>
+        <sphereGeometry args={[1, 20, 12]} />
+        <meshStandardMaterial color="#5d392b" roughness={1} metalness={0.01} />
       </instancedMesh>
 
       <instancedMesh ref={coreRef} args={[undefined, undefined, cores.length]} castShadow>

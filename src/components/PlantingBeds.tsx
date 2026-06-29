@@ -29,19 +29,26 @@ export default function PlantingBeds({
 }) {
   const flowers = useRef<THREE.InstancedMesh>(null);
   const leaves = useRef<THREE.InstancedMesh>(null);
+  const bedBase = useRef<THREE.InstancedMesh>(null);
   const flowerMat = useRef<THREE.MeshStandardMaterial>(null);
   const tex = useMemo(makeFloretTexture, []);
 
-  const plantings = useMemo(() => {
-    const rng = mulberry32(77123);
-    const palette = ["#ff8fbd", "#ffaccd", "#ffd3df", "#f37ca9", "#f6b6c9", "#f9e1d8"];
-    const beds = [
+  const beds = useMemo(
+    () => [
       { x: -5.5, z: -0.9, rx: 2.2, rz: 0.58 },
       { x: 5.9, z: -1.35, rx: 1.65, rz: 0.52 },
       { x: -5.7, z: 4.3, rx: 1.8, rz: 0.52 },
       { x: 6.4, z: 4.5, rx: 1.45, rz: 0.48 },
       { x: -1.9, z: -6.0, rx: 1.45, rz: 0.46 },
-    ];
+      { x: 2.0, z: -7.25, rx: 1.35, rz: 0.42 },
+      { x: -3.8, z: 6.1, rx: 1.4, rz: 0.42 },
+    ],
+    []
+  );
+
+  const plantings = useMemo(() => {
+    const rng = mulberry32(77123);
+    const palette = ["#ff8fbd", "#ffaccd", "#ffd3df", "#f37ca9", "#f6b6c9", "#f9e1d8", "#fff0f5"];
 
     return Array.from({ length: count }, (_, i) => {
       const bed = beds[i % beds.length];
@@ -61,20 +68,35 @@ export default function PlantingBeds({
         x,
         z,
         y: 0.052 + rng() * 0.025,
-        flowerS: 0.12 + rng() * 0.085,
+        flowerS: 0.115 + rng() * 0.095,
         leafS: 0.15 + rng() * 0.13,
         rot: rng() * Math.PI * 2,
         tilt: (rng() - 0.5) * 0.22,
         color: palette[Math.floor(rng() * palette.length)],
       };
     });
-  }, [count]);
+  }, [beds, count]);
 
   useLayoutEffect(() => {
     const m = new THREE.Matrix4();
     const q = new THREE.Quaternion();
     const e = new THREE.Euler();
     const c = new THREE.Color();
+
+    beds.forEach((bed, i) => {
+      e.set(-Math.PI / 2, 0, (i % 2 ? -0.12 : 0.16) + i * 0.03);
+      q.setFromEuler(e);
+      m.compose(
+        new THREE.Vector3(bed.x, 0.026, bed.z),
+        q,
+        new THREE.Vector3(bed.rx, bed.rz, 1)
+      );
+      bedBase.current!.setMatrixAt(i, m);
+      c.set(theme === "dark" ? (i % 2 ? "#28382e" : "#332c34") : i % 2 ? "#5e6d3e" : "#65513e");
+      bedBase.current!.setColorAt(i, c);
+    });
+    bedBase.current!.instanceMatrix.needsUpdate = true;
+    if (bedBase.current!.instanceColor) bedBase.current!.instanceColor.needsUpdate = true;
 
     plantings.forEach((t, i) => {
       e.set(-Math.PI / 2 + t.tilt, 0, t.rot);
@@ -92,7 +114,7 @@ export default function PlantingBeds({
     flowers.current!.instanceMatrix.needsUpdate = true;
     leaves.current!.instanceMatrix.needsUpdate = true;
     if (flowers.current!.instanceColor) flowers.current!.instanceColor.needsUpdate = true;
-  }, [plantings]);
+  }, [beds, plantings, theme]);
 
   useFrame((state) => {
     if (flowerMat.current) {
@@ -105,6 +127,16 @@ export default function PlantingBeds({
 
   return (
     <group>
+      <instancedMesh ref={bedBase} args={[undefined, undefined, beds.length]} receiveShadow>
+        <circleGeometry args={[1, 32]} />
+        <meshStandardMaterial
+          vertexColors
+          roughness={1}
+          transparent
+          opacity={theme === "dark" ? 0.28 : 0.24}
+          depthWrite={false}
+        />
+      </instancedMesh>
       <instancedMesh ref={leaves} args={[undefined, undefined, count]}>
         <circleGeometry args={[1, 12]} />
         <meshStandardMaterial
