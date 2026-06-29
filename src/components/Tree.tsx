@@ -145,6 +145,22 @@ function buildTree(seed: number, density: number) {
     }
   };
 
+  const addOverheadCanopy = (n: number) => {
+    for (let i = 0; i < n; i++) {
+      const x = -5.15 + rng() * 6.6 + Math.sin(i * 0.53) * 0.38;
+      const z = -2.6 + rng() * 5.7 + Math.cos(i * 0.41) * 0.28;
+      const openCenter = Math.max(0, Math.abs(x + 1.2) - 2.8);
+      const y = 3.0 + rng() * 0.95 - openCenter * 0.05;
+      const size = (0.5 + rng() * 0.55) * (density >= 1 ? 1 : 0.72);
+      veil.push({
+        pos: new THREE.Vector3(x, y, z),
+        scale: size,
+        rot: new THREE.Euler(rng() * Math.PI, rng() * Math.PI, rng() * Math.PI),
+        tint: PALETTE[Math.floor(rng() * PALETTE.length)],
+      });
+    }
+  };
+
   // a branch that rises then arcs downward (weeping), spawning children + blossoms
   function grow(
     start: THREE.Vector3,
@@ -237,6 +253,7 @@ function buildTree(seed: number, density: number) {
   }
 
   addHangingCanopy(Math.round(164 * density));
+  addOverheadCanopy(Math.round(74 * density));
 
   return { segs, trunk, trunkRadii, cards, veil, cores, roots };
 }
