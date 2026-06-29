@@ -60,7 +60,7 @@ export default function App() {
   const [focused, setFocused] = useState<string | null>(null);
   const [entered, setEntered] = useState(false);
   const [webglReady] = useState(canUseWebGL);
-  const [theme, setTheme] = useState<"dark" | "light">("light");
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [motion, setMotion] = useState(
     () =>
       typeof window === "undefined" ||
