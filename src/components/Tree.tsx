@@ -34,9 +34,8 @@ interface Core {
   tint: string;
 }
 interface Root {
-  a: THREE.Vector3;
-  b: THREE.Vector3;
-  r: number;
+  points: THREE.Vector3[];
+  radii: number[];
 }
 
 const PALETTE = ["#ffd2e7", "#ffc0de", "#ffe6f2", "#ffcae1", "#fff2f8", "#ffb9d9"];
@@ -60,6 +59,57 @@ function makeTaperedTube(points: THREE.Vector3[], radii: number[], radial = 30) 
       const wobble = 1 + Math.sin(i * 1.7 + j * 1.9) * 0.028 + Math.sin(j * 3.1 + i * 0.8) * 0.018;
       const r = radii[i] * wobble;
       positions.push(p.x + normal.x * r, p.y + normal.y * r, p.z + normal.z * r);
+    }
+  });
+
+  for (let i = 0; i < points.length - 1; i++) {
+    for (let j = 0; j < radial; j++) {
+      const a = i * radial + j;
+      const b = i * radial + ((j + 1) % radial);
+      const c = (i + 1) * radial + j;
+      const d = (i + 1) * radial + ((j + 1) % radial);
+      indices.push(a, c, b, b, c, d);
+    }
+  }
+
+  const startCenter = positions.length / 3;
+  positions.push(points[0].x, points[0].y, points[0].z);
+  for (let j = 0; j < radial; j++) indices.push(startCenter, (j + 1) % radial, j);
+
+  const endCenter = positions.length / 3;
+  const lastRing = (points.length - 1) * radial;
+  const last = points[points.length - 1];
+  positions.push(last.x, last.y, last.z);
+  for (let j = 0; j < radial; j++) indices.push(endCenter, lastRing + j, lastRing + ((j + 1) % radial));
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(positions), 3));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  return geo;
+}
+
+function makeRootGeometry(points: THREE.Vector3[], radii: number[], radial = 20) {
+  const positions: number[] = [];
+  const indices: number[] = [];
+  const worldUp = new THREE.Vector3(0, 1, 0);
+
+  points.forEach((p, i) => {
+    const prev = points[Math.max(0, i - 1)];
+    const next = points[Math.min(points.length - 1, i + 1)];
+    const tangent = next.clone().sub(prev).normalize();
+    let side = new THREE.Vector3().crossVectors(worldUp, tangent);
+    if (side.lengthSq() < 0.001) side = new THREE.Vector3(1, 0, 0);
+    side.normalize();
+    const vertical = new THREE.Vector3().crossVectors(tangent, side).normalize();
+
+    for (let j = 0; j < radial; j++) {
+      const a = (j / radial) * Math.PI * 2;
+      const wobble = 1 + Math.sin(i * 1.3 + j * 2.2) * 0.045 + Math.sin(i * 2.1 + j) * 0.025;
+      const r = radii[i] * wobble;
+      const lateral = side.clone().multiplyScalar(Math.cos(a) * r * 1.18);
+      const lift = vertical.clone().multiplyScalar(Math.sin(a) * r * 0.46);
+      positions.push(p.x + lateral.x + lift.x, p.y + lateral.y + lift.y, p.z + lateral.z + lift.z);
     }
   });
 
@@ -241,13 +291,31 @@ function buildTree(seed: number, density: number) {
   trunkRadii.push(trad * 0.48);
   const crown = tpos.clone();
 
-  for (let i = 0; i < 9; i++) {
-    const a = (i / 9) * Math.PI * 2 + rng() * 0.28;
-    const len = 0.72 + rng() * 0.95;
+  for (let i = 0; i < 11; i++) {
+    const a = (i / 11) * Math.PI * 2 + rng() * 0.28;
+    const sideBend = (rng() - 0.5) * 0.62;
+    const len = 0.95 + rng() * 1.2;
+    const dir = new THREE.Vector3(Math.cos(a), 0, Math.sin(a));
+    const side = new THREE.Vector3(-Math.sin(a), 0, Math.cos(a));
+    const start = dir.clone().multiplyScalar(0.18).add(new THREE.Vector3(0, 0.16, 0));
+    const shoulder = dir
+      .clone()
+      .multiplyScalar(0.42)
+      .add(side.clone().multiplyScalar(sideBend * 0.12))
+      .add(new THREE.Vector3(0, 0.115, 0));
+    const mid = dir
+      .clone()
+      .multiplyScalar(len * 0.58)
+      .add(side.clone().multiplyScalar(sideBend * 0.24))
+      .add(new THREE.Vector3(0, 0.06 + rng() * 0.018, 0));
+    const tip = dir
+      .clone()
+      .multiplyScalar(len)
+      .add(side.clone().multiplyScalar(sideBend * 0.38))
+      .add(new THREE.Vector3(0, -0.012, 0));
     roots.push({
-      a: new THREE.Vector3(Math.cos(a) * 0.2, 0.13, Math.sin(a) * 0.2),
-      b: new THREE.Vector3(Math.cos(a) * len, 0.055 + rng() * 0.025, Math.sin(a) * len),
-      r: 0.09 + rng() * 0.045,
+      points: [start, shoulder, mid, tip],
+      radii: [0.18 + rng() * 0.035, 0.135 + rng() * 0.025, 0.075 + rng() * 0.02, 0.012],
     });
   }
 
@@ -292,7 +360,6 @@ export default function Tree({
 }) {
   const group = useRef<THREE.Group>(null);
   const barkRef = useRef<THREE.InstancedMesh>(null);
-  const rootRef = useRef<THREE.InstancedMesh>(null);
   const jointRef = useRef<THREE.InstancedMesh>(null);
   const coreRef = useRef<THREE.InstancedMesh>(null);
   const cardRef = useRef<THREE.InstancedMesh>(null);
@@ -304,6 +371,7 @@ export default function Tree({
   const density = detail >= 1 ? 1 : 0.45;
   const { segs, trunk, trunkRadii, cards, veil, cores, roots } = useMemo(() => buildTree(seed, density), [seed, density]);
   const trunkGeometry = useMemo(() => makeTaperedTube(trunk, trunkRadii), [trunk, trunkRadii]);
+  const rootGeometries = useMemo(() => roots.map((root) => makeRootGeometry(root.points, root.radii)), [roots]);
   const joints = useMemo<Joint[]>(() => {
     const kept: Joint[] = [];
     segs.forEach((s, i) => {
@@ -327,16 +395,6 @@ export default function Tree({
       barkRef.current!.setMatrixAt(i, m);
     });
     barkRef.current!.instanceMatrix.needsUpdate = true;
-
-    roots.forEach((s, i) => {
-      const d = s.b.clone().sub(s.a);
-      const len = d.length();
-      const mid = s.a.clone().add(s.b).multiplyScalar(0.5);
-      q.setFromUnitVectors(up, d.clone().normalize());
-      m.compose(mid, q, new THREE.Vector3(s.r, len, s.r * 0.72));
-      rootRef.current!.setMatrixAt(i, m);
-    });
-    rootRef.current!.instanceMatrix.needsUpdate = true;
 
     joints.forEach((j, i) => {
       m.compose(j.pos, new THREE.Quaternion(), new THREE.Vector3(j.r, j.r * 0.8, j.r));
@@ -372,7 +430,7 @@ export default function Tree({
     });
     veilRef.current!.instanceMatrix.needsUpdate = true;
     if (veilRef.current!.instanceColor) veilRef.current!.instanceColor.needsUpdate = true;
-  }, [segs, joints, cards, veil, cores, roots]);
+  }, [segs, joints, cards, veil, cores]);
 
   useFrame((state) => {
     if (group.current) {
@@ -404,10 +462,12 @@ export default function Tree({
         <meshStandardMaterial color="#5d392b" roughness={1} metalness={0.01} />
       </mesh>
 
-      <instancedMesh ref={rootRef} args={[undefined, undefined, roots.length]} castShadow receiveShadow>
-        <cylinderGeometry args={[1, 1, 1, 18, 1]} />
-        <meshStandardMaterial color="#5d392b" roughness={1} metalness={0.01} />
-      </instancedMesh>
+      {rootGeometries.map((geometry, i) => (
+        <mesh key={`root-${i}`} castShadow receiveShadow>
+          <primitive object={geometry} attach="geometry" />
+          <meshStandardMaterial color="#563427" roughness={1} metalness={0.01} />
+        </mesh>
+      ))}
 
       <instancedMesh ref={barkRef} args={[undefined, undefined, segs.length]} castShadow receiveShadow>
         <cylinderGeometry args={[1, 1, 1, 36, 2]} />

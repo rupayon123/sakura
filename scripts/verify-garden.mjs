@@ -21,6 +21,7 @@ const app = read("src/App.tsx");
 const intro = read("src/components/Intro.tsx");
 const infoPanel = read("src/components/InfoPanel.tsx");
 const cameraRig = read("src/components/CameraRig.tsx");
+const tree = read("src/components/Tree.tsx");
 const flowerPatch = read("src/components/FlowerPatch.tsx");
 const building = read("src/components/Building.tsx");
 const gardenGround = read("src/components/GardenGround.tsx");
@@ -61,6 +62,16 @@ const checks = [
   {
     pass: (scene.match(/<Tree(?:\s|>)/g) ?? []).length === 1,
     message: "Scene must render exactly one giant sakura tree.",
+  },
+  {
+    pass:
+      tree.includes("function makeRootGeometry") &&
+      tree.includes("points: THREE.Vector3[]") &&
+      tree.includes("radii: number[]") &&
+      tree.includes("vertical.clone().multiplyScalar(Math.sin(a) * r * 0.46)") &&
+      !tree.includes("ref={rootRef}") &&
+      !tree.includes("<cylinderGeometry args={[1, 1, 1, 18, 1]} />"),
+    message: "The single sakura tree roots must be curved, tapered geometry that sinks into the soil, not straight cylinder instances.",
   },
   {
     pass: /<Bushes\b[^>]*count=\{0\}/s.test(scene),
