@@ -27,8 +27,12 @@ export default function CameraRig({
   const desiredPos = useRef((isMobile ? MOBILE_OVERVIEW_POS : OVERVIEW_POS).clone());
   const desiredTarget = useRef((isMobile ? MOBILE_OVERVIEW_TARGET : OVERVIEW_TARGET).clone());
   const animating = useRef(true);
+  const returningToOverview = useRef(false);
 
   useEffect(() => {
+    returningToOverview.current = !focused;
+    userOrbiting.current = false;
+
     if (focused?.id === "house-story") {
       desiredPos.current.set(isMobile ? -5.2 : -5.8, isMobile ? 1.75 : 1.82, isMobile ? 2.05 : -0.25);
       desiredTarget.current.set(-0.8, 1.0, -10.1);
@@ -46,26 +50,52 @@ export default function CameraRig({
       desiredTarget.current.copy(isMobile ? MOBILE_OVERVIEW_TARGET : OVERVIEW_TARGET);
     }
     animating.current = true;
-  }, [focused, isMobile]);
+
+  }, [focused, isMobile, userOrbiting]);
+
+  useEffect(() => {
+    const c = controls.current;
+    if (!c) return;
+
+    const canOrbit = !focused && entered;
+    c.enabled = canOrbit;
+    c.autoRotate = canOrbit && motion && !userOrbiting.current;
+    c.update();
+  }, [controls, entered, focused, motion, userOrbiting]);
 
   useFrame(() => {
     const c = controls.current;
     if (!c) return;
 
+    const canOrbit = !focused && entered;
+
     if (animating.current) {
-      // flying to a target — rig is fully in control, no auto-rotate
-      c.enabled = false;
-      c.autoRotate = false;
-      camera.position.lerp(desiredPos.current, 0.07);
-      c.target.lerp(desiredTarget.current, 0.07);
+      const returning = returningToOverview.current;
+
+      if (returning && userOrbiting.current) {
+        animating.current = false;
+        c.enabled = canOrbit;
+        c.autoRotate = false;
+        c.update();
+        return;
+      }
+
+      // Focused panels get a clean guided camera move. Closing a panel keeps
+      // controls live so the garden never feels stuck while easing home.
+      c.enabled = returning ? canOrbit : false;
+      c.autoRotate = returning && canOrbit && motion && !userOrbiting.current;
+      camera.position.lerp(desiredPos.current, returning ? 0.045 : 0.07);
+      c.target.lerp(desiredTarget.current, returning ? 0.045 : 0.07);
       c.update();
-      if (camera.position.distanceTo(desiredPos.current) < 0.05) {
+      if (
+        camera.position.distanceTo(desiredPos.current) < 0.05 &&
+        c.target.distanceTo(desiredTarget.current) < 0.05
+      ) {
         animating.current = false;
       }
     } else {
       // Settled: hand control back and keep updating it ourselves so
       // auto-rotate resumes after pointer drags instead of waiting for a new grab.
-      const canOrbit = !focused && entered;
       c.enabled = canOrbit;
       c.autoRotate = canOrbit && motion && !userOrbiting.current;
       c.update();

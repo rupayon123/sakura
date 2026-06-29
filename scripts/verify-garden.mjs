@@ -181,6 +181,11 @@ const checks = [
     pass:
       cameraRig.includes("userOrbiting: React.MutableRefObject<boolean>") &&
       cameraRig.includes("c.autoRotate = canOrbit && motion && !userOrbiting.current") &&
+      cameraRig.includes("const returningToOverview = useRef(false)") &&
+      cameraRig.includes("returningToOverview.current = !focused") &&
+      cameraRig.includes("userOrbiting.current = false") &&
+      cameraRig.includes("if (returning && userOrbiting.current)") &&
+      cameraRig.includes("c.enabled = returning ? canOrbit : false") &&
       cameraRig.includes("c.update();") &&
       scene.includes("const userOrbiting = useRef(false)") &&
       scene.includes("onStart={() =>") &&
@@ -188,7 +193,7 @@ const checks = [
       scene.includes("onEnd={() =>") &&
       scene.includes("userOrbiting.current = false") &&
       scene.includes("controls.current.update()"),
-    message: "Orbit controls must resume motion cleanly after the user drags the camera.",
+    message: "Orbit controls must resume cleanly after panel close and after the user drags the camera.",
   },
   {
     pass:
