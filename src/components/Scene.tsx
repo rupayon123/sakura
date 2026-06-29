@@ -116,11 +116,11 @@ export default function Scene({ focused, setFocused, entered, motion, isMobile, 
         maxPolarAngle={Math.PI / 2.08}
         enableDamping
         dampingFactor={0.08}
-        autoRotateSpeed={0.18}
+        autoRotateSpeed={0.08}
       />
 
       {/* one huge weeping sakura — the centerpiece */}
-      <Tree motion={motion} detail={isMobile ? 0.45 : 1} position={[4.7, 0, 0.2]} scale={1.42} seed={20240426} />
+      <Tree motion={motion} detail={isMobile ? 0.45 : 1} position={[4.35, 0, 0.1]} scale={1.47} seed={20240426} />
       <Petals count={petalCount} play={motion} theme={theme} />
       <GardenGround theme={theme} petalCount={isMobile ? 400 : 700} />
       <GrassTufts count={isMobile ? 72 : 160} theme={theme} play={motion} />
@@ -130,15 +130,15 @@ export default function Scene({ focused, setFocused, entered, motion, isMobile, 
       <CourtyardFrame theme={theme} />
 
       {/* stone lanterns dotted around the courtyard */}
-      <Lantern position={[5.2, 0, 3.55]} scale={0.72} rotation={0.3} glow={light ? 0.3 : 1.15} />
-      <Lantern position={[-5.9, 0, -1.05]} scale={0.62} rotation={-0.6} glow={light ? 0.28 : 1.1} />
-      <Lantern position={[2.35, 0, -6.1]} scale={0.82} rotation={2.2} glow={light ? 0.28 : 1.2} />
+      <Lantern position={[6.15, 0, 3.25]} scale={0.58} rotation={0.3} glow={light ? 0.24 : 0.95} />
+      <Lantern position={[-6.75, 0, -1.6]} scale={0.48} rotation={-0.6} glow={light ? 0.22 : 0.9} />
+      <Lantern position={[1.7, 0, -6.35]} scale={0.52} rotation={2.2} glow={light ? 0.22 : 0.92} />
 
       {/* simple local Japanese house, grounded into the garden */}
       <Building
-        position={[0, 0, -10.7]}
+        position={[-0.8, 0, -10.35]}
         rotation={0}
-        scale={0.9}
+        scale={0.76}
         theme={theme}
         onClick={() => setFocused(focused === houseStoryPatch.id ? null : houseStoryPatch.id)}
       />
