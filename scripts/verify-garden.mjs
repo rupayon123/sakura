@@ -82,6 +82,17 @@ const checks = [
     message: "Family content should not return as separate flower/nav patches.",
   },
   {
+    pass:
+      content.includes("「栗原」 is my family name") &&
+      content.includes("the Kurihara family house") &&
+      indexHtml.includes("Kurihara family roots") &&
+      readme.includes("modest Kurihara family") &&
+      !/(?:real grandmother's home|grandmother-like|a grandmother's promise)/i.test(
+        [content, indexHtml, readme].join("\n")
+      ),
+    message: "Kurihara must read as Rupayon's family name and personal family story, not a generic grandmother-home trope.",
+  },
+  {
     pass: !/\b(?:positioon|posiiton|postion)=/.test(runtimeSource),
     message: "Scene code must not contain misspelled position props that make objects vanish or float.",
   },

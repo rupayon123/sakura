@@ -8,14 +8,13 @@ grounded Japanese home with the sign 「栗原の家」, and garden beds that co
 Rupayon's projects, roots, and personal story.
 
 The target feeling is cinematic, warm, and alive: an open Japanese garden with
-fallen petals, stone paths, planted beds, lanterns, and a modest grandmother-like
-house. It is not a static wallpaper, a palace, a fantasy shrine, or a toy
-diorama.
+fallen petals, stone paths, planted beds, lanterns, and a modest Kurihara family
+home. It is not a static wallpaper, a palace, a fantasy shrine, or a toy diorama.
 
 ## Experience
 
 - One giant interactive sakura tree with falling petals and subtle motion
-- A grounded local Japanese house that opens the family and grandmother story
+- A grounded local Japanese house that opens the Kurihara family and grandmother story
 - GitHub project beds placed as low garden markers around the scene
 - About content that ties Rupayon, LinkedIn, GitHub, family, and roots together
 - Light mode for warm daylight and dark mode for a moonlit garden
