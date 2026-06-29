@@ -138,6 +138,12 @@ const checks = [
   },
   {
     pass:
+      indexHtml.includes('<body data-theme="dark">') &&
+      app.includes('useState<"dark" | "light">("dark")'),
+    message: "The garden must start in dark mode before and after React initializes.",
+  },
+  {
+    pass:
       app.includes("prefers-reduced-motion: reduce") &&
       styles.includes("@media (prefers-reduced-motion: reduce)") &&
       styles.includes("button:focus-visible") &&
