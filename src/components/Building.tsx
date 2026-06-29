@@ -145,6 +145,53 @@ function WoodSlat({
   );
 }
 
+function PorchPot({ position, light, accent }: { position: Vec3; light: boolean; accent: string }) {
+  const clay = light ? "#8c5a42" : "#51313a";
+  const leaf = light ? "#5f7f4c" : "#3f6548";
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.13, 0]} castShadow receiveShadow>
+        <cylinderGeometry args={[0.2, 0.16, 0.26, 12]} />
+        <meshStandardMaterial color={clay} roughness={0.86} />
+      </mesh>
+      <mesh position={[0, 0.28, 0]} receiveShadow>
+        <cylinderGeometry args={[0.17, 0.17, 0.045, 12]} />
+        <meshStandardMaterial color={light ? "#493526" : "#281e25"} roughness={1} />
+      </mesh>
+      {[-0.09, 0.08, 0.0].map((x, i) => (
+        <mesh key={`leaf-${i}`} position={[x, 0.34 + i * 0.018, i % 2 ? 0.04 : -0.035]} rotation={[0.65, 0.25 * i, 0.5 - i * 0.42]} castShadow>
+          <sphereGeometry args={[0.075, 8, 6]} />
+          <meshStandardMaterial color={leaf} roughness={0.8} />
+        </mesh>
+      ))}
+      {[[-0.035, 0.42, 0.02], [0.055, 0.39, -0.025]].map(([x, y, z], i) => (
+        <mesh key={`flower-${i}`} position={[x, y, z]} rotation={[0, 0.35 * i, 0]} castShadow>
+          <sphereGeometry args={[0.045, 8, 6]} />
+          <meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={light ? 0.05 : 0.14} roughness={0.72} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+function RainChain({ position, light }: { position: Vec3; light: boolean }) {
+  const metal = light ? "#756b60" : "#8d8790";
+  return (
+    <group position={position}>
+      {Array.from({ length: 7 }, (_, i) => (
+        <mesh key={i} position={[0, -i * 0.16, 0]} rotation={[Math.PI / 2, i % 2 ? Math.PI / 2 : 0, 0]} castShadow>
+          <torusGeometry args={[0.065, 0.011, 8, 14]} />
+          <meshStandardMaterial color={metal} roughness={0.55} metalness={0.12} />
+        </mesh>
+      ))}
+      <mesh position={[0, -1.12, 0]} castShadow receiveShadow>
+        <cylinderGeometry args={[0.16, 0.2, 0.11, 14]} />
+        <meshStandardMaterial color={light ? "#a79e92" : "#5b5762"} roughness={1} />
+      </mesh>
+    </group>
+  );
+}
+
 /**
  * A modest local Japanese home: low stone foundation, warm timber, shoji
  * panels, engawa veranda, and one deep tiled roof grounded into the garden.
@@ -199,7 +246,8 @@ export default function Building({
         if (onClick) document.body.style.cursor = "auto";
       }}
     >
-      {/* low foundation, clearly touching the ground */}
+      <group scale={[0.82, 1, 1]}>
+        {/* low foundation, clearly touching the ground */}
       <mesh position={[0, 0.22, 0]} castShadow receiveShadow>
         <boxGeometry args={[9.8, 0.44, 4.65]} />
         <meshStandardMaterial color={stone} map={stoneMap} roughness={1} />
@@ -257,13 +305,13 @@ export default function Building({
         <boxGeometry args={[0.82, 1.34, 0.12]} />
         <meshStandardMaterial color={darkTimber} roughness={0.76} />
       </mesh>
-      <group position={[3.55, 1.86, 1.925]}>
+      <group position={[3.5, 1.9, 1.925]}>
         <mesh castShadow receiveShadow>
-          <boxGeometry args={[1.92, 0.66, 0.06]} />
+          <boxGeometry args={[2.18, 0.74, 0.06]} />
           <meshStandardMaterial color={light ? "#7d4e34" : "#5c3940"} roughness={0.82} />
         </mesh>
         <mesh position={[0, 0, 0.031]}>
-          <planeGeometry args={[1.76, 0.58]} />
+          <planeGeometry args={[2.02, 0.64]} />
           <meshStandardMaterial
             map={signMap}
             roughness={0.74}
@@ -300,6 +348,12 @@ export default function Building({
         </mesh>
       ))}
 
+      <mesh position={[3.9, 0.675, 2.83]} castShadow receiveShadow>
+        <boxGeometry args={[1.12, 0.028, 0.4]} />
+        <meshStandardMaterial color={light ? "#3c2b24" : "#211a20"} roughness={0.92} />
+      </mesh>
+      <RainChain position={[4.92, 1.72, 2.78]} light={light} />
+
       <GabledRoof position={[0, 2.62, -0.2]} width={10.8} depth={5.45} color={roof} wood={timber} roofMap={roofMap} />
       <mesh position={[0, 2.15, 2.78]} castShadow>
         <boxGeometry args={[9.72, 0.2, 0.16]} />
@@ -321,6 +375,8 @@ export default function Building({
       <StoneStep position={[3.9, 0.19, 2.95]} width={1.6} depth={0.62} stoneMap={stoneMap} />
       <StoneStep position={[3.9, 0.08, 3.55]} width={2.0} depth={0.58} stoneMap={stoneMap} />
       <StoneStep position={[3.9, 0.045, 4.18]} width={2.28} depth={0.46} stoneMap={stoneMap} />
+      <PorchPot position={[2.58, 0.11, 3.12]} light={light} accent={light ? "#f5a7bf" : "#ff9fcb"} />
+      <PorchPot position={[5.08, 0.11, 3.18]} light={light} accent={light ? "#e9d77e" : "#ffe5a0"} />
 
       {/* warm, house-scale lights */}
       {[
@@ -335,6 +391,7 @@ export default function Building({
           <pointLight intensity={light ? 0.32 : 1.9} distance={8.4} color="#ffbd76" />
         </group>
       ))}
+      </group>
     </group>
   );
 }
