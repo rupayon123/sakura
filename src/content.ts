@@ -1,7 +1,7 @@
 /* ============================================================================
  *  YOUR STORY LIVES HERE.
  *
- *  - The grandmother's quote + family (tulip) beds are written by hand below.
+ *  - The grandmother's quote + house story are written by hand below.
  *  - The PROJECT beds are generated from your GitHub repos (src/projects.json,
  *    refreshed with `node scripts/fetch-projects.mjs`). To change which repos
  *    appear, edit the CURATED list in that script and re-run it.
@@ -9,7 +9,7 @@
  * ==========================================================================*/
 import projectsData from "./projects.json";
 
-export type FlowerKind = "sakura" | "tulip" | "daisy" | "lavender" | "poppy";
+export type FlowerKind = "sakura" | "heritage" | "daisy" | "lavender" | "poppy";
 
 export interface Patch {
   id: string;
@@ -49,12 +49,12 @@ export const aboutPatch: Patch = {
   label: "About",
   flower: "sakura",
   color: "#ff9ecf",
-  angle: 0,
-  radius: 0,
+  angle: 24,
+  radius: 4.9,
   kind: "about",
   title: "Rupayon Haldar",
   meta: "Builder of tools that open doors",
-  body: "I'm a developer in the Greater Toronto Area who builds tools that open doors — in youth STEM access, civic tech, and education. I made GTA Free STEM (a website + iOS app for finding free STEM opportunities, volunteer hours, and co-op / SHSM pathways across the GTA) and Arduino Blocks Lab (Blockly block-coding for robotics). I love full-stack building and the energy of hackathons. From civic platforms to a B2B SaaS app and a resume + job-assist tool, I gravitate toward software that makes opportunity more accessible.",
+  body: "I'm a developer in the Greater Toronto Area building tools around youth STEM access, civic tech, education, and opportunity. This website ties that work back to something personal: my grandmother's sakura promise, my family roots, and the idea that the things I build should help people find a path forward. The garden is a living portfolio: the project beds are GitHub work, the house carries the family story, and the one giant sakura is the promise everything grows around.",
   links: [
     { label: "LinkedIn", href: "https://www.linkedin.com/in/rupayonhaldar/" },
     { label: "GitHub", href: "https://github.com/rupayon123" },
@@ -62,50 +62,26 @@ export const aboutPatch: Patch = {
 };
 
 /* ----------------------------------------------------------------------------
- *  THE FAMILY — TULIPS.
- *  Tulips carpet the whole garden (see TulipField); these are the special,
- *  clickable tulip beds that hold the family stories. Tulips only — always.
+ *  THE HOUSE STORY.
+ *  This opens from the physical house, not from the top navigation.
  * --------------------------------------------------------------------------*/
-export const familyPatches: Patch[] = [
-  {
-    id: "family",
-    label: "Family",
-    flower: "tulip",
-    color: "#ff5d8f",
-    angle: 215,
-    radius: 4.2,
-    kind: "family",
-    title: "Family",
-    body: "Tulips run all through this garden because they run all through us. This whole field is family — the people who planted me. Write here what family means to you, the names, the love that holds it together.",
-  },
-  {
-    id: "grandmother",
-    label: "Grandmother",
-    flower: "tulip",
-    color: "#ff8fab",
-    angle: 245,
-    radius: 3.5,
-    kind: "family",
-    title: "Grandmother",
-    body: "Her promise is the root of this whole place: that one day I would get a cherry blossom tree. Everything here grows from those words. Tell her story.",
-  },
-  {
-    id: "roots",
-    label: "Roots",
-    flower: "tulip",
-    color: "#ffb3c6",
-    angle: 185,
-    radius: 4.4,
-    kind: "family",
-    title: "Roots",
-    body: "Where we come from, the traditions we carry, and why tulips have always been ours. The soil the tree stands in.",
-  },
-];
+export const houseStoryPatch: Patch = {
+  id: "house-story",
+  label: "House",
+  flower: "heritage",
+  color: "#ff8fab",
+  angle: 180,
+  radius: 10.7,
+  kind: "family",
+  title: "栗原の家",
+  meta: "grandmother, family, roots",
+  body: "The house carries the family part of the site. It is a small memory of a real grandmother's home, marked with 「栗原の家」, and it gives the garden its roots. Her sakura promise is the reason the tree stands here: when a new life begins, the sakura she plants grows with it.",
+};
 
 /* ----------------------------------------------------------------------------
  *  PROJECT PRESENTATION
  *  Maps each GitHub repo id → how its flower bed looks & where it sits.
- *  Use any flower EXCEPT tulip (tulips belong to family).
+ *  Project beds stay visually distinct from the family/root markers.
  * --------------------------------------------------------------------------*/
 type Present = {
   displayName: string;
@@ -120,42 +96,35 @@ const PRESENTATION: Record<string, Present> = {
     displayName: "GTA Free STEM",
     flower: "sakura",
     color: "#ff7eb6",
-    angle: 0,
+    angle: 300,
     radius: 6.6,
   },
   "gta-free-stem-ios": {
     displayName: "GTA STEM · iOS",
     flower: "daisy",
     color: "#7ee8fa",
-    angle: 45,
+    angle: 58,
     radius: 6.9,
   },
   "arduino-blocks-lab": {
     displayName: "Arduino Blocks Lab",
     flower: "poppy",
     color: "#38bdf8",
-    angle: 90,
+    angle: 105,
     radius: 6.6,
   },
   PipHackLup: {
     displayName: "PipHackLup",
     flower: "lavender",
     color: "#9b8cff",
-    angle: 128,
+    angle: 148,
     radius: 6.9,
-  },
-  "my-app": {
-    displayName: "AuraSpace",
-    flower: "poppy",
-    color: "#ff6b6b",
-    angle: 315,
-    radius: 6.6,
   },
   "all-in-one-resume-builder-job-assist-applier": {
     displayName: "Resume + Job Assist",
     flower: "daisy",
     color: "#86efac",
-    angle: 340,
+    angle: 270,
     radius: 6.9,
   },
 };
@@ -189,4 +158,5 @@ export const projectPatches: Patch[] = projectsData.map((p, i) => {
   };
 });
 
-export const allPatches: Patch[] = [...projectPatches, ...familyPatches];
+export const markerPatches: Patch[] = [aboutPatch, ...projectPatches];
+export const allPatches: Patch[] = [...markerPatches, houseStoryPatch];

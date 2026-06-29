@@ -1,4 +1,4 @@
-import { projectPatches, familyPatches, aboutPatch, site } from "../content";
+import { projectPatches, aboutPatch, site } from "../content";
 
 export default function Nav({
   focused,
@@ -19,17 +19,15 @@ export default function Nav({
 
   return (
     <nav className="nav">
-      <span
+      <button
         className="nav__brand"
         onClick={() => setFocused(null)}
-        style={{ cursor: "pointer" }}
         title={site.title}
+        aria-label="Return to garden overview"
       >
         {site.kanji} {site.initials}
-      </span>
+      </button>
       {projectPatches.map((p) => btn(p.id, p.label))}
-      <span className="nav__sep" aria-hidden />
-      {familyPatches.map((p) => btn(p.id, p.label))}
       <span className="nav__sep" aria-hidden />
       {btn(aboutPatch.id, aboutPatch.label)}
     </nav>

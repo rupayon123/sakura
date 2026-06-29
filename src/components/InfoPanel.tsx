@@ -16,7 +16,7 @@ export default function InfoPanel({
           </button>
           <div className="panel__eyebrow">
             {patch.kind === "family"
-              ? "family · tulips"
+              ? "house · roots"
               : patch.kind === "about"
               ? "about"
               : "project"}

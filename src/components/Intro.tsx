@@ -24,7 +24,7 @@ export default function Intro({
         {site.enterJa} · {site.enter}
       </button>
 
-      <p className="intro__attr" style={{ opacity: 0.45, marginTop: 4 }}>
+      <p className="intro__attr intro__subtitle">
         {site.subtitleJa} · {site.subtitle}
       </p>
     </div>

@@ -86,21 +86,6 @@
     "pushedAt": "2026-06-22T15:45:15Z"
   },
   {
-    "id": "my-app",
-    "name": "my-app",
-    "description": "AuraSpace — B2B salon management: scheduling, CRM, WhatsApp AI, client portal. Next.js + Prisma.",
-    "homepage": "https://app.auraspace.it",
-    "repo": "https://github.com/rupayon123/my-app",
-    "stars": 0,
-    "topics": [],
-    "languages": [
-      "TypeScript",
-      "CSS",
-      "Shell"
-    ],
-    "pushedAt": "2026-06-13T22:42:25Z"
-  },
-  {
     "id": "all-in-one-resume-builder-job-assist-applier",
     "name": "all-in-one-resume-builder-job-assist-applier",
     "description": "Open-source job-search workspace for resumes, ATS checks, job tracking, cover letters, and Chrome job saving.",

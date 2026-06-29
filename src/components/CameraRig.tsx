@@ -3,29 +3,33 @@ import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import type { Patch } from "../content";
 
-const OVERVIEW_POS = new THREE.Vector3(0, 6.5, 24);
-const OVERVIEW_TARGET = new THREE.Vector3(0, 5.0, 0);
+const OVERVIEW_POS = new THREE.Vector3(-7.0, 1.86, 10.9);
+const OVERVIEW_TARGET = new THREE.Vector3(0.75, 3.18, -7.55);
+const MOBILE_OVERVIEW_POS = new THREE.Vector3(-6.25, 1.92, 12.8);
+const MOBILE_OVERVIEW_TARGET = new THREE.Vector3(1.0, 3.2, -7.2);
 
 export default function CameraRig({
   controls,
   focused,
   entered,
   motion,
+  isMobile,
 }: {
   controls: React.MutableRefObject<any>;
   focused: Patch | null;
   entered: boolean;
   motion: boolean;
+  isMobile: boolean;
 }) {
   const { camera } = useThree();
-  const desiredPos = useRef(OVERVIEW_POS.clone());
-  const desiredTarget = useRef(OVERVIEW_TARGET.clone());
+  const desiredPos = useRef((isMobile ? MOBILE_OVERVIEW_POS : OVERVIEW_POS).clone());
+  const desiredTarget = useRef((isMobile ? MOBILE_OVERVIEW_TARGET : OVERVIEW_TARGET).clone());
   const animating = useRef(true);
 
   useEffect(() => {
     if (focused && focused.kind === "about") {
-      desiredPos.current.set(0, 4.6, 12.5);
-      desiredTarget.current.set(0, 3.4, 0);
+      desiredPos.current.set(0, 3.25, 9.5);
+      desiredTarget.current.set(0, 3.65, -2.2);
     } else if (focused) {
       const rad = THREE.MathUtils.degToRad(focused.angle);
       const px = Math.sin(rad) * focused.radius;
@@ -33,11 +37,11 @@ export default function CameraRig({
       desiredPos.current.set(px + Math.sin(rad) * 3.2, 2.1, pz + Math.cos(rad) * 3.2);
       desiredTarget.current.set(px, 0.8, pz);
     } else {
-      desiredPos.current.copy(OVERVIEW_POS);
-      desiredTarget.current.copy(OVERVIEW_TARGET);
+      desiredPos.current.copy(isMobile ? MOBILE_OVERVIEW_POS : OVERVIEW_POS);
+      desiredTarget.current.copy(isMobile ? MOBILE_OVERVIEW_TARGET : OVERVIEW_TARGET);
     }
     animating.current = true;
-  }, [focused]);
+  }, [focused, isMobile]);
 
   useFrame(() => {
     const c = controls.current;

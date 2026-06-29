@@ -222,12 +222,12 @@ export default function Tree({
   return (
     <group ref={group} position={position} scale={scale}>
       <instancedMesh ref={barkRef} args={[undefined, undefined, segs.length]} castShadow receiveShadow>
-        <cylinderGeometry args={[1, 1, 1, 8]} />
-        <meshStandardMaterial color="#6e4a33" roughness={0.95} metalness={0.04} />
+        <cylinderGeometry args={[1, 1, 1, 30, 2]} />
+        <meshStandardMaterial color="#6a4633" roughness={0.98} metalness={0.02} />
       </instancedMesh>
 
       <instancedMesh ref={coreRef} args={[undefined, undefined, cores.length]} castShadow>
-        <icosahedronGeometry args={[1, 2]} />
+        <icosahedronGeometry args={[1, 3]} />
         <meshStandardMaterial vertexColors roughness={0.85} emissive="#ff9ec9" emissiveIntensity={0.42} />
       </instancedMesh>
 

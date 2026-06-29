@@ -6,9 +6,11 @@ import { makePetalTexture } from "../textures";
 export default function Petals({
   count = 800,
   play = true,
+  theme = "light",
 }: {
   count?: number;
   play?: boolean;
+  theme?: "dark" | "light";
 }) {
   const ref = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
@@ -63,12 +65,12 @@ export default function Petals({
         map={tex}
         emissiveMap={tex}
         emissive="#ff86bd"
-        emissiveIntensity={0.5}
+        emissiveIntensity={theme === "dark" ? 0.38 : 0.28}
         side={THREE.DoubleSide}
         transparent
         alphaTest={0.4}
         roughness={0.8}
-        toneMapped={false}
+        toneMapped={theme !== "dark"}
       />
     </instancedMesh>
   );

@@ -125,6 +125,176 @@ export function makeGrassTexture(): THREE.Texture {
   return tex;
 }
 
+export function makeGrassBladeTexture(): THREE.Texture {
+  const c = document.createElement("canvas");
+  c.width = c.height = 128;
+  const ctx = c.getContext("2d")!;
+  ctx.translate(64, 118);
+
+  const drawBlade = (x: number, height: number, width: number, bend: number, color: string) => {
+    const g = ctx.createLinearGradient(0, 0, 0, -height);
+    g.addColorStop(0, color);
+    g.addColorStop(1, "rgba(196, 220, 140, 0.82)");
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(x - width, 0);
+    ctx.quadraticCurveTo(x + bend * 0.36, -height * 0.52, x + bend, -height);
+    ctx.quadraticCurveTo(x + bend * 0.18, -height * 0.54, x + width, 0);
+    ctx.closePath();
+    ctx.fill();
+  };
+
+  drawBlade(-18, 82, 5, -18, "rgba(83, 118, 58, 0.9)");
+  drawBlade(0, 100, 6, 8, "rgba(104, 145, 73, 0.94)");
+  drawBlade(17, 74, 5, 20, "rgba(75, 105, 54, 0.86)");
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+export function makeStoneTexture(): THREE.Texture {
+  const c = document.createElement("canvas");
+  c.width = c.height = 256;
+  const ctx = c.getContext("2d")!;
+  ctx.fillStyle = "#d9c7ad";
+  ctx.fillRect(0, 0, 256, 256);
+
+  for (let i = 0; i < 2600; i++) {
+    const v = 188 + Math.random() * 46;
+    ctx.fillStyle = `rgba(${v}, ${v - 12}, ${v - 28}, ${0.05 + Math.random() * 0.08})`;
+    ctx.fillRect(Math.random() * 256, Math.random() * 256, 1.6, 1.6);
+  }
+
+  ctx.strokeStyle = "rgba(97, 79, 64, 0.24)";
+  ctx.lineWidth = 2;
+  for (let x = 0; x <= 256; x += 64) {
+    ctx.beginPath();
+    ctx.moveTo(x + (Math.random() - 0.5) * 4, 0);
+    ctx.lineTo(x + (Math.random() - 0.5) * 4, 256);
+    ctx.stroke();
+  }
+  for (let y = 0; y <= 256; y += 58) {
+    ctx.beginPath();
+    ctx.moveTo(0, y + (Math.random() - 0.5) * 4);
+    ctx.lineTo(256, y + (Math.random() - 0.5) * 4);
+    ctx.stroke();
+  }
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(1.5, 1.5);
+  tex.anisotropy = 8;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+export function makePlasterTexture(): THREE.Texture {
+  const c = document.createElement("canvas");
+  c.width = c.height = 256;
+  const ctx = c.getContext("2d")!;
+  ctx.fillStyle = "#f8e2d4";
+  ctx.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 3200; i++) {
+    const a = 0.035 + Math.random() * 0.06;
+    ctx.fillStyle = Math.random() > 0.5 ? `rgba(255,255,255,${a})` : `rgba(118,82,68,${a})`;
+    ctx.fillRect(Math.random() * 256, Math.random() * 256, 1.4, 1.4);
+  }
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(1.8, 1.2);
+  tex.anisotropy = 6;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+export function makeRoofTileTexture(): THREE.Texture {
+  const c = document.createElement("canvas");
+  c.width = c.height = 256;
+  const ctx = c.getContext("2d")!;
+  ctx.fillStyle = "#56616b";
+  ctx.fillRect(0, 0, 256, 256);
+
+  for (let y = 12; y < 256; y += 28) {
+    const g = ctx.createLinearGradient(0, y - 8, 0, y + 10);
+    g.addColorStop(0, "rgba(255,255,255,0.16)");
+    g.addColorStop(0.45, "rgba(0,0,0,0.08)");
+    g.addColorStop(1, "rgba(0,0,0,0.22)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, y - 8, 256, 18);
+    ctx.strokeStyle = "rgba(30, 35, 39, 0.5)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(256, y);
+    ctx.stroke();
+  }
+
+  ctx.strokeStyle = "rgba(255,255,255,0.12)";
+  ctx.lineWidth = 1;
+  for (let x = 16; x < 256; x += 32) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x + 12, 256);
+    ctx.stroke();
+  }
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(2.5, 2);
+  tex.anisotropy = 8;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+export function makeHouseSignTexture(): THREE.Texture {
+  const c = document.createElement("canvas");
+  c.width = 512;
+  c.height = 192;
+  const ctx = c.getContext("2d")!;
+
+  const wood = ctx.createLinearGradient(0, 0, 512, 192);
+  wood.addColorStop(0, "#6a3f2d");
+  wood.addColorStop(0.45, "#9b6a46");
+  wood.addColorStop(1, "#5a3528");
+  ctx.fillStyle = wood;
+  ctx.fillRect(0, 0, 512, 192);
+
+  for (let y = 24; y < 192; y += 34) {
+    ctx.strokeStyle = "rgba(45, 28, 20, 0.18)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(18, y + Math.sin(y) * 3);
+    ctx.bezierCurveTo(150, y - 8, 300, y + 10, 494, y - 4);
+    ctx.stroke();
+  }
+
+  ctx.strokeStyle = "rgba(255, 224, 170, 0.45)";
+  ctx.lineWidth = 10;
+  ctx.strokeRect(16, 16, 480, 160);
+  ctx.strokeStyle = "rgba(38, 22, 16, 0.65)";
+  ctx.lineWidth = 4;
+  ctx.strokeRect(28, 28, 456, 136);
+
+  ctx.fillStyle = "#20130f";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = '700 76px "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif CJK JP", serif';
+  ctx.fillText("栗原の家", 256, 98);
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 6;
+  tex.needsUpdate = true;
+  return tex;
+}
+
 export function makeBlossomTexture(): THREE.Texture {
   const c = document.createElement("canvas");
   c.width = c.height = 256;

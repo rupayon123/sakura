@@ -32,11 +32,20 @@ export default function Bushes({
       ? ["#4f7a43", "#5d8a4c", "#446b3a", "#618f50"]
       : ["#22402a", "#2c4d33", "#1c3624", "#2f5238"];
     const out: { pos: THREE.Vector3; scl: THREE.Vector3; color: string }[] = [];
+    const anchors = [
+      [-6.9, 3.2],
+      [6.8, 2.8],
+      [-7.4, -2.4],
+      [7.2, -2.8],
+      [-4.2, 7.1],
+      [4.4, 6.7],
+      [-8.5, 7.8],
+      [8.6, 7.4],
+    ];
     for (let b = 0; b < count; b++) {
-      const a = r() * Math.PI * 2;
-      const rad = 5 + r() * 9;
-      const cx = Math.cos(a) * rad;
-      const cz = Math.sin(a) * rad;
+      const [ax, az] = anchors[b % anchors.length];
+      const cx = ax + (r() - 0.5) * 1.0;
+      const cz = az + (r() - 0.5) * 0.9;
       const bs = 0.6 + r() * 0.7;
       for (let i = 0; i < blobsPer; i++) {
         const ox = (r() - 0.5) * bs * 1.3;
