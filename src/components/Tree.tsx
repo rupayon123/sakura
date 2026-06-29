@@ -106,6 +106,7 @@ function buildTree(seed: number, density: number) {
   const rng = mulberry32(seed);
   const segs: Seg[] = [];
   const cards: Card[] = [];
+  const veil: Card[] = [];
   const cores: Core[] = [];
   const roots: Root[] = [];
   const trunk: THREE.Vector3[] = [];
@@ -121,6 +122,23 @@ function buildTree(seed: number, density: number) {
       cards.push({
         pos: makeBlossomCardPosition(rng, pos, size),
         scale: 0.3 + rng() * 0.42,
+        rot: new THREE.Euler(rng() * Math.PI, rng() * Math.PI, rng() * Math.PI),
+        tint: PALETTE[Math.floor(rng() * PALETTE.length)],
+      });
+    }
+  };
+
+  const addHangingCanopy = (n: number) => {
+    for (let i = 0; i < n; i++) {
+      const sideBias = Math.pow(rng(), 0.72);
+      const x = -3.25 + sideBias * 5.7 + Math.sin(i * 0.77) * 0.32;
+      const z = -2.25 + rng() * 4.45 + Math.sin(i * 0.43) * 0.22;
+      const edgeFalloff = Math.min(1, Math.abs(x + 0.25) / 3.2);
+      const y = 2.06 + rng() * 1.18 - edgeFalloff * 0.16;
+      const size = (0.48 + rng() * 0.5) * (density >= 1 ? 1 : 0.72);
+      veil.push({
+        pos: new THREE.Vector3(x, y, z),
+        scale: size,
         rot: new THREE.Euler(rng() * Math.PI, rng() * Math.PI, rng() * Math.PI),
         tint: PALETTE[Math.floor(rng() * PALETTE.length)],
       });
@@ -218,7 +236,9 @@ function buildTree(seed: number, density: number) {
     );
   }
 
-  return { segs, trunk, trunkRadii, cards, cores, roots };
+  addHangingCanopy(Math.round(164 * density));
+
+  return { segs, trunk, trunkRadii, cards, veil, cores, roots };
 }
 
 export default function Tree({
@@ -240,11 +260,13 @@ export default function Tree({
   const jointRef = useRef<THREE.InstancedMesh>(null);
   const coreRef = useRef<THREE.InstancedMesh>(null);
   const cardRef = useRef<THREE.InstancedMesh>(null);
+  const veilRef = useRef<THREE.InstancedMesh>(null);
   const cardMat = useRef<THREE.MeshStandardMaterial>(null);
+  const veilMat = useRef<THREE.MeshStandardMaterial>(null);
 
   const tex = useMemo(makeBlossomTexture, []);
   const density = detail >= 1 ? 1 : 0.45;
-  const { segs, trunk, trunkRadii, cards, cores, roots } = useMemo(() => buildTree(seed, density), [seed, density]);
+  const { segs, trunk, trunkRadii, cards, veil, cores, roots } = useMemo(() => buildTree(seed, density), [seed, density]);
   const trunkGeometry = useMemo(() => makeTaperedTube(trunk, trunkRadii), [trunk, trunkRadii]);
   const joints = useMemo<Joint[]>(() => {
     const kept: Joint[] = [];
@@ -304,7 +326,17 @@ export default function Tree({
     });
     cardRef.current!.instanceMatrix.needsUpdate = true;
     if (cardRef.current!.instanceColor) cardRef.current!.instanceColor.needsUpdate = true;
-  }, [segs, joints, cards, cores, roots]);
+
+    veil.forEach((b, i) => {
+      q.setFromEuler(b.rot);
+      m.compose(b.pos, q, new THREE.Vector3(b.scale, b.scale, b.scale));
+      veilRef.current!.setMatrixAt(i, m);
+      c.set(b.tint);
+      veilRef.current!.setColorAt(i, c);
+    });
+    veilRef.current!.instanceMatrix.needsUpdate = true;
+    if (veilRef.current!.instanceColor) veilRef.current!.instanceColor.needsUpdate = true;
+  }, [segs, joints, cards, veil, cores, roots]);
 
   useFrame((state) => {
     if (group.current) {
@@ -316,6 +348,11 @@ export default function Tree({
       cardMat.current.emissiveIntensity = motion
         ? 0.32 + Math.sin(state.clock.elapsedTime * 0.7) * 0.06
         : 0.32;
+    }
+    if (veilMat.current) {
+      veilMat.current.emissiveIntensity = motion
+        ? 0.2 + Math.sin(state.clock.elapsedTime * 0.52 + 1.4) * 0.04
+        : 0.2;
     }
   });
 
@@ -372,6 +409,24 @@ export default function Tree({
           transparent
           alphaTest={0.42}
           roughness={0.8}
+        />
+      </instancedMesh>
+
+      <instancedMesh ref={veilRef} args={[undefined, undefined, veil.length]} castShadow>
+        <planeGeometry args={[1.12, 1.12]} />
+        <meshStandardMaterial
+          ref={veilMat}
+          map={tex}
+          emissiveMap={tex}
+          emissive="#ff7fb3"
+          emissiveIntensity={0.16}
+          vertexColors
+          side={THREE.DoubleSide}
+          transparent
+          opacity={0.84}
+          alphaTest={0.36}
+          roughness={0.82}
+          depthWrite={false}
         />
       </instancedMesh>
     </group>
