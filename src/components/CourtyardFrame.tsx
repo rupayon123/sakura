@@ -200,7 +200,7 @@ export default function CourtyardFrame({ theme }: { theme: "dark" | "light" }) {
       <EarthBerm position={[0, -0.62, -19.2]} scale={[24, 1.26, 3.8]} theme={theme} />
       <EarthBerm position={[-9.5, -0.48, -22]} scale={[15, 1.65, 5.2]} theme={theme} />
       <EarthBerm position={[8.5, -0.5, -23.5]} scale={[13, 1.45, 4.8]} theme={theme} />
-      <EarthBerm positioon={[0, -0.55, -27]} scale={[22, 1.75, 4.8]} theme={theme} />
+      <EarthBerm position={[0, -0.55, -27]} scale={[22, 1.75, 4.8]} theme={theme} />
       <HorizonHaze theme={theme} />
       <BackGardenWall theme={theme} />
       <SideGardenWall theme={theme} />

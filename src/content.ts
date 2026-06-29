@@ -142,7 +142,7 @@ const FALLBACK: Present = {
 export const projectPatches: Patch[] = projectsData.map((p, i) => {
   const pr = PRESENTATION[p.id] ?? { ...FALLBACK, angle: i * 51 };
   const links: { label: string; href: string }[] = [];
-  if (p.homepage) links.push({ label: "Live site", href: p.homepage) });
+  if (p.homepage) links.push({ label: "Live site", href: p.homepage });
   links.push({ label: "GitHub", href: p.repo });
   const metaBits = [p.languages.join(" · "), p.stars ? `★ ${p.stars}` : ""].filter(Boolean);
   return {
