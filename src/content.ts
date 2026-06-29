@@ -55,7 +55,7 @@ export const aboutPatch: Patch = {
   kind: "about",
   title: "Rupayon Haldar",
   meta: "Developer in the Greater Toronto Area",
-  body: "I'm Rupayon, a developer building tools around youth STEM access, civic tech, education, and opportunity. This garden turns the usual portfolio into a place you can walk through: the flower beds point to public GitHub work, LinkedIn gives the straight professional thread, and the one giant sakura ties the whole site back to the promise that made it personal.",
+  body: "I'm Rupayon, a developer building tools around youth STEM access, civic tech, education, and opportunity. This site turns the usual portfolio into a place you can walk through: the flower beds point to public GitHub work, LinkedIn gives the straight professional thread, and the quiet house story explains why the garden is personal.",
   links: [
     { label: "LinkedIn", href: "https://www.linkedin.com/in/rupayonhaldar/" },
     { label: "GitHub", href: "https://github.com/rupayon123" },
@@ -76,7 +76,7 @@ export const houseStoryPatch: Patch = {
   radius: 10.7,
   kind: "family",
   title: "栗原の家",
-  meta: "grandmother, roots, and the sakura promise",
+  meta: "the house behind the garden",
   body: "This house carries the family story instead of putting it in the main navigation: a quiet memory of a real grandmother's home, marked with 「栗原の家」. It gives the garden its roots. Her sakura promise is why the tree stands here: when a new life begins, the sakura she plants grows with it.",
 };
 
