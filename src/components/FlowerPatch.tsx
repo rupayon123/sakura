@@ -17,52 +17,52 @@ type BedStyle = {
 
 const bedStyles: Record<Patch["flower"], BedStyle> = {
   sakura: {
-    count: 46,
-    ellipseX: 0.92,
-    ellipseZ: 0.74,
-    disc: 1.04,
-    floret: [0.14, 0.095],
-    leaf: [0.1, 0.075],
+    count: 64,
+    ellipseX: 0.98,
+    ellipseZ: 0.78,
+    disc: 1.28,
+    floret: [0.17, 0.11],
+    leaf: [0.12, 0.08],
     centerBias: 0.54,
     lean: 0.18,
   },
   heritage: {
-    count: 32,
-    ellipseX: 1.18,
-    ellipseZ: 0.58,
-    disc: 1.2,
-    floret: [0.16, 0.09],
-    leaf: [0.13, 0.08],
+    count: 44,
+    ellipseX: 1.34,
+    ellipseZ: 0.64,
+    disc: 1.45,
+    floret: [0.18, 0.1],
+    leaf: [0.14, 0.085],
     centerBias: 0.62,
     lean: 0.14,
   },
   daisy: {
-    count: 34,
-    ellipseX: 1.08,
-    ellipseZ: 0.68,
-    disc: 1.12,
-    floret: [0.11, 0.075],
-    leaf: [0.12, 0.08],
+    count: 48,
+    ellipseX: 1.24,
+    ellipseZ: 0.76,
+    disc: 1.36,
+    floret: [0.13, 0.085],
+    leaf: [0.13, 0.085],
     centerBias: 0.5,
     lean: 0.16,
   },
   lavender: {
-    count: 38,
-    ellipseX: 0.72,
-    ellipseZ: 1.02,
-    disc: 1.08,
-    floret: [0.1, 0.068],
-    leaf: [0.11, 0.07],
+    count: 54,
+    ellipseX: 0.82,
+    ellipseZ: 1.14,
+    disc: 1.32,
+    floret: [0.12, 0.075],
+    leaf: [0.12, 0.075],
     centerBias: 0.46,
     lean: 0.22,
   },
   poppy: {
-    count: 30,
-    ellipseX: 0.98,
-    ellipseZ: 0.76,
-    disc: 1.1,
-    floret: [0.17, 0.095],
-    leaf: [0.1, 0.075],
+    count: 44,
+    ellipseX: 1.12,
+    ellipseZ: 0.84,
+    disc: 1.36,
+    floret: [0.19, 0.11],
+    leaf: [0.12, 0.08],
     centerBias: 0.56,
     lean: 0.2,
   },
@@ -96,6 +96,7 @@ export default function FlowerPatch({
   const floretRef = useRef<THREE.InstancedMesh>(null);
   const leafRef = useRef<THREE.InstancedMesh>(null);
   const floretMat = useRef<THREE.MeshStandardMaterial>(null);
+  const ringMat = useRef<THREE.MeshStandardMaterial>(null);
   const targetScale = useMemo(() => new THREE.Vector3(1, 1, 1), []);
   const [hovered, setHovered] = useState(false);
 
@@ -165,62 +166,112 @@ export default function FlowerPatch({
 
   useFrame((state) => {
     if (group.current) {
-      const target = active ? 1.14 : hovered ? 1.06 : 1;
+      const target = active ? 1.24 : hovered ? 1.16 : 1;
       targetScale.set(target, target, target);
       group.current.scale.lerp(targetScale, 0.1);
-      group.current.position.y = active ? 0.045 + Math.sin(state.clock.elapsedTime * 2) * 0.015 : 0;
+      const hoverLift = hovered ? 0.018 + Math.sin(state.clock.elapsedTime * 2.6) * 0.006 : 0;
+      group.current.position.y = active
+        ? 0.052 + Math.sin(state.clock.elapsedTime * 2) * 0.014
+        : hoverLift;
     }
 
+    const interactive = active || hovered;
     const glow = dark
       ? dimmed
         ? 0.03
-        : active || hovered
-        ? 0.34
+        : interactive
+        ? 0.55
         : 0.1
       : dimmed
       ? 0.05
-      : active || hovered
-      ? 0.22
+      : interactive
+      ? 0.34
       : 0.12;
     if (floretMat.current) floretMat.current.emissiveIntensity = glow;
+    if (ringMat.current) {
+      ringMat.current.emissiveIntensity = dark
+        ? dimmed
+          ? 0.04
+          : interactive
+          ? 0.95
+          : 0.28
+        : dimmed
+        ? 0.025
+        : interactive
+        ? 0.55
+        : 0.16;
+    }
   });
 
   const leafColor = dark ? "#456f4b" : "#90aa69";
   const soilColor = dark ? "#2d2530" : "#7a654d";
+  const interactive = active || hovered;
   const discOpacity = dark
     ? dimmed
       ? 0.035
-      : active || hovered
-      ? 0.16
-      : 0.075
-    : active || hovered
-    ? 0.14
-    : 0.045;
-  const discRadius = active || hovered ? style.disc * 1.04 : style.disc;
+      : interactive
+      ? 0.2
+      : 0.1
+    : interactive
+    ? 0.17
+    : 0.07;
+  const ringOpacity = dark
+    ? dimmed
+      ? 0.08
+      : interactive
+      ? 0.52
+      : 0.26
+    : dimmed
+    ? 0.055
+    : interactive
+    ? 0.38
+    : 0.18;
+  const discRadius = interactive ? style.disc * 1.08 : style.disc;
+  const hitRadius = style.disc * 1.36;
 
   return (
-    <group position={base}>
+    <group
+      position={base}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+      onPointerOver={(e) => {
+        e.stopPropagation();
+        setHovered(true);
+        document.body.style.cursor = "pointer";
+      }}
+      onPointerOut={() => {
+        setHovered(false);
+        document.body.style.cursor = "auto";
+      }}
+    >
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.045, 0]}>
+        <circleGeometry args={[hitRadius, 48]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+      </mesh>
+
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.014, 0]} receiveShadow>
         <circleGeometry args={[discRadius, 42]} />
         <meshStandardMaterial color={soilColor} transparent opacity={discOpacity} roughness={1} />
       </mesh>
 
-      <group
-        ref={group}
-        onClick={(e) => {
-          e.stopPropagation();
-          onClick();
-        }}
-        onPointerOver={(e) => {
-          e.stopPropagation();
-          setHovered(true);
-          document.body.style.cursor = "pointer";
-        }}
-        onPointerOut={() => {
-          setHovered(false);
-          document.body.style.cursor = "auto";
-        }}
-      >
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.026, 0]}>
+        <ringGeometry args={[style.disc * 1.1, style.disc * 1.22, 72]} />
+        <meshStandardMaterial
+          ref={ringMat}
+          color={patch.color}
+          emissive={patch.color}
+          emissiveIntensity={dark ? 0.28 : 0.16}
+          transparent
+          opacity={ringOpacity}
+          roughness={0.62}
+          depthWrite={false}
+          toneMapped={false}
+        />
+      </mesh>
+
+      <group ref={group}>
         <instancedMesh ref={leafRef} args={[undefined, undefined, N]}>
           <circleGeometry args={[1, 12]} />
           <meshStandardMaterial

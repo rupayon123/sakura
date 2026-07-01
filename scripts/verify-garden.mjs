@@ -178,6 +178,14 @@ const checks = [
   },
   {
     pass:
+      styles.includes(".intro {\n  position: fixed;") &&
+      styles.includes("justify-content: center;") &&
+      styles.includes("padding: max(28px, 7vh) 24px max(28px, 7vh);") &&
+      styles.includes("padding: max(22px, 6vh) 18px max(22px, 6vh);"),
+    message: "Intro overlay writing must remain centered vertically on desktop and mobile.",
+  },
+  {
+    pass:
       cameraRig.includes("const canOrbit = !focused && entered") &&
       cameraRig.includes("c.autoRotate = canOrbit && motion && !userOrbiting.current") &&
       scene.includes("<Petals count={petalCount} play={motion}") &&
@@ -256,6 +264,24 @@ const checks = [
   {
     pass: flowerPatch.includes("const targetScale = useMemo(() => new THREE.Vector3(1, 1, 1), [])"),
     message: "Flower patch hover animation should avoid allocating a new Vector3 every frame.",
+  },
+  {
+    pass:
+      flowerPatch.includes("const ringMat = useRef<THREE.MeshStandardMaterial>(null)") &&
+      flowerPatch.includes("<ringGeometry args={[style.disc * 1.1, style.disc * 1.22, 72]} />") &&
+      flowerPatch.includes("const hitRadius = style.disc * 1.36") &&
+      flowerPatch.includes('document.body.style.cursor = "pointer"') &&
+      flowerPatch.includes("const target = active ? 1.24 : hovered ? 1.16 : 1"),
+    message: "Project/about flower beds must stay visibly clickable with bigger beds, a hover ring, and a forgiving hit target.",
+  },
+  {
+    pass:
+      cameraRig.includes("const OVERVIEW_POS = new THREE.Vector3(-7.2, 3.35, 9.35)") &&
+      cameraRig.includes("const OVERVIEW_TARGET = new THREE.Vector3(0.9, 1.18, -3.85)") &&
+      cameraRig.includes("const MOBILE_OVERVIEW_POS = new THREE.Vector3(-6.35, 3.55, 11.25)") &&
+      app.includes("position: isMobile ? [-6.35, 3.55, 11.25] : [-7.2, 3.35, 9.35]") &&
+      app.includes("fov: isMobile ? 62 : 50"),
+    message: "The opening camera must remain pulled back enough to show the garden and clickable beds.",
   },
 ];
 
