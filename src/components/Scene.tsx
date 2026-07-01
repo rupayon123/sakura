@@ -30,6 +30,7 @@ interface Props {
 export default function Scene({ focused, setFocused, entered, motion, isMobile, theme }: Props) {
   const controls = useRef<any>(null);
   const userOrbiting = useRef(false);
+  const orbitReleaseTimer = useRef<number | null>(null);
   const focusedPatch = allPatches.find((p) => p.id === focused) ?? null;
   const light = theme === "light";
   const { gl } = useThree();
@@ -38,6 +39,34 @@ export default function Scene({ focused, setFocused, entered, motion, isMobile, 
     gl.toneMapping = THREE.ACESFilmicToneMapping;
     gl.toneMappingExposure = light ? 1.5 : 1.48;
   }, [gl, light]);
+
+  useEffect(() => {
+    return () => {
+      if (orbitReleaseTimer.current !== null) window.clearTimeout(orbitReleaseTimer.current);
+    };
+  }, []);
+
+  function markUserOrbiting() {
+    userOrbiting.current = true;
+    if (orbitReleaseTimer.current !== null) window.clearTimeout(orbitReleaseTimer.current);
+    orbitReleaseTimer.current = null;
+    if (controls.current) {
+      controls.current.autoRotate = false;
+      controls.current.update();
+    }
+  }
+
+  function releaseUserOrbiting() {
+    if (orbitReleaseTimer.current !== null) window.clearTimeout(orbitReleaseTimer.current);
+    orbitReleaseTimer.current = window.setTimeout(() => {
+      userOrbiting.current = false;
+      orbitReleaseTimer.current = null;
+      if (controls.current) {
+        controls.current.autoRotate = !focusedPatch && entered && motion;
+        controls.current.update();
+      }
+    }, 750);
+  }
 
   const petalCount = isMobile ? 480 : 1300;
   const plantingCount = isMobile ? 160 : 380;
@@ -125,17 +154,8 @@ export default function Scene({ focused, setFocused, entered, motion, isMobile, 
         enableDamping
         dampingFactor={0.08}
         autoRotateSpeed={0.08}
-        onStart={() => {
-          userOrbiting.current = true;
-          if (controls.current) controls.current.autoRotate = false;
-        }}
-        onEnd={() => {
-          userOrbiting.current = false;
-          if (controls.current) {
-            controls.current.autoRotate = !focusedPatch && entered && motion;
-            controls.current.update();
-          }
-        }}
+        onStart={markUserOrbiting}
+        onEnd={releaseUserOrbiting}
       />
 
       {/* one huge weeping sakura — the centerpiece */}

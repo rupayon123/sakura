@@ -207,12 +207,17 @@ const checks = [
       cameraRig.includes("c.enabled = returning ? canOrbit : false") &&
       cameraRig.includes("c.update();") &&
       scene.includes("const userOrbiting = useRef(false)") &&
-      scene.includes("onStart={() =>") &&
+      scene.includes("const orbitReleaseTimer = useRef<number | null>(null)") &&
+      scene.includes("function markUserOrbiting()") &&
+      scene.includes("function releaseUserOrbiting()") &&
       scene.includes("userOrbiting.current = true") &&
-      scene.includes("onEnd={() =>") &&
+      scene.includes("window.setTimeout") &&
+      scene.includes("window.clearTimeout") &&
       scene.includes("userOrbiting.current = false") &&
+      scene.includes("onStart={markUserOrbiting}") &&
+      scene.includes("onEnd={releaseUserOrbiting}") &&
       scene.includes("controls.current.update()"),
-    message: "Orbit controls must resume cleanly after panel close and after the user drags the camera.",
+    message: "Orbit controls must resume cleanly after panel close, drag, and wheel zoom without snapping back.",
   },
   {
     pass:
